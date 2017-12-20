@@ -91,7 +91,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Chrisbanks2-Cold-Fusion-Hd-Clock-3.ico" />
     <Content Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
