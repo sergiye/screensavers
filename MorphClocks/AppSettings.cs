@@ -47,7 +47,7 @@ namespace MorphClocks
 
         private static string GetSettingsFilePath()
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.xml");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, Path.ChangeExtension(AppDomain.CurrentDomain.FriendlyName, ".xml"));
         }
 
         public void Save()

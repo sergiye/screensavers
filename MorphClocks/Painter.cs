@@ -7,6 +7,14 @@ namespace MorphClocks
 {
     public class Painter
     {
+        private class Snowflake
+        {
+            public float X { get; set; }
+            public float Y { get; set; }
+            public float R { get; set; }
+            public float D { get; set; }
+        }
+
         private readonly bool _previewMode;
         private readonly string _fontName;
         private readonly bool _drawCircle;
@@ -15,9 +23,17 @@ namespace MorphClocks
         private readonly Color _textColor;
         private readonly Color _linesColor;
         private readonly List<Shape> _shapes;
+        private readonly Random _random;
 
-        public Painter(string fontName, Color textColor, Color linesColor, bool backTimer = false, int workEnd = 0, bool drawCircle = false, bool previewMode = false)
+        //snowflake particles
+        private readonly int _flakesCount; //max particles
+        private readonly List<Snowflake> _particles = new List<Snowflake>();
+
+        public Painter(Rectangle rect, string fontName, Color textColor, Color linesColor, bool backTimer = false, int workEnd = 0, 
+            bool drawCircle = false, bool previewMode = false)
         {
+            _random = new Random();
+
             _previewMode = previewMode;
             _fontName = fontName;
             _textColor = textColor;
@@ -29,6 +45,81 @@ namespace MorphClocks
             _shapes = new List<Shape>();
             for (var i = 0; i < 1; i++)
                 _shapes.Add(new Shape(_previewMode, AppSettings.Instance.Move3D, AppSettings.Instance.MixPoint));
+
+            if (!_previewMode)
+            {
+                _flakesCount = _random.Next(25, 100);
+                PrepareSnowFlakes(rect);
+            }
+        }
+
+        private void PrepareSnowFlakes(Rectangle rect)
+        {
+            for (var i = 0; i < _flakesCount; i++)
+            {
+                _particles.Add(new Snowflake
+                               {
+                                   X = (float)(_random.NextDouble() * rect.Width), //x-coordinate
+                                   Y = (float)(_random.NextDouble() * rect.Height), //y-coordinate
+                                   R = (float)(_random.NextDouble() * 4 + 1), //radius
+                                   D = (float)(_random.NextDouble() * _flakesCount) //density
+                               });
+            }
+        }
+
+        //Lets draw the flakes
+        private void DrawFlakes(Graphics graphics, Rectangle rect)
+        {
+            foreach (var p in _particles)
+            {
+                using (var pen = new Pen(Color.AliceBlue, 3))
+                {
+                    graphics.DrawEllipse(pen, p.X, p.Y, p.R, p.R);
+                }
+            }
+            UpdateFlakes(rect);
+        }
+
+        //Function to move the snowflakes
+        //angle will be an ongoing incremental flag. Sin and Cos functions will be applied to it to create vertical and horizontal movements of the flakes
+        double _snowFlakeAngle;
+        private void UpdateFlakes(Rectangle rect)
+        {
+            _snowFlakeAngle += 0.01;
+            for (var i = 0; i < _flakesCount; i++)
+            {
+                var p = _particles[i];
+                //Updating X and Y coordinates
+                //We will add 1 to the cos function to prevent negative values which will lead flakes to move upwards
+                //Every particle has its own density which can be used to make the downward movement different for each flake
+                //Lets make it more random by adding in the radius
+                p.Y += (float)(Math.Cos(_snowFlakeAngle + p.D) + 1 + p.R / 2);
+                p.X += (float)Math.Sin(_snowFlakeAngle) * 2;
+
+                //Sending flakes back from the top when it exits
+                //Lets make it a bit more organic and let flakes enter from the left and right also.
+                if (p.X > rect.Width + 5 || p.X < -5 || p.Y > rect.Height)
+                {
+                    if (i % 3 > 0) //66.67% of the flakes
+                    {
+                        _particles[i] = new Snowflake{ X = (float) (_random.NextDouble() * rect.Width), Y = -10, R = p.R, D = p.D};
+                    }
+                    else
+                    {
+                        //If the flake is exitting from the right
+                        if (Math.Sin(_snowFlakeAngle) > 0)
+                        {
+                            //Enter from the left
+                            _particles[i] = new Snowflake{ X = -5, Y = (float) (_random.NextDouble() * rect.Height), R = p.R, D = p.D};
+                        }
+                        else
+                        {
+                            //Enter from the right
+                            _particles[i] = new Snowflake{ X = rect.Width + 5, Y = (float) (_random.NextDouble() * rect.Height), R = p.R, D = p.D};
+                        }
+                    }
+                }
+            }
         }
 
         public void UpdateDisplay(Graphics graphics, Rectangle rect)
@@ -45,6 +136,8 @@ namespace MorphClocks
                 shape.DrawScreen(graphics, rect);
             }
             // drawing clocks and figure
+            if (!_previewMode)
+                DrawFlakes(graphics, rect);
             DrawTimer(graphics, rect, 0, 0, nowTime);
         }
 

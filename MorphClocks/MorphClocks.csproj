@@ -96,4 +96,7 @@
     <Content Include="icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetPath) $(TargetDir)$(TargetName).scr</PostBuildEvent>
+  </PropertyGroup>
 </Project>

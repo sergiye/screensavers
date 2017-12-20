@@ -38,18 +38,18 @@ namespace MorphClocks
 
         private void btnTextColor_Click(object sender, EventArgs e)
         {
-            var dlg = new ColorDialog();
+            var dlg = new ColorDialog {Color = AppSettings.Instance.TextColor};
             if (dlg.ShowDialog() != DialogResult.OK) return;
             btnTextColor.BackColor = dlg.Color;
-            AppSettings.Instance.TextColor = btnTextColor.BackColor;
+            AppSettings.Instance.TextColor = dlg.Color;
         }
 
         private void btnLinesColor_Click(object sender, EventArgs e)
         {
-            var dlg = new ColorDialog();
+            var dlg = new ColorDialog { Color = AppSettings.Instance.LineColor };
             if (dlg.ShowDialog() != DialogResult.OK) return;
             btnLinesColor.BackColor = dlg.Color;
-            AppSettings.Instance.LineColor = btnLinesColor.BackColor;
+            AppSettings.Instance.LineColor = dlg.Color;
         }
 
         private void btnFont_Click(object sender, EventArgs e)
@@ -57,7 +57,7 @@ namespace MorphClocks
             var dlg = new FontDialog();
             if (dlg.ShowDialog() != DialogResult.OK) return;
             btnFont.Text = dlg.Font.Name;
-            AppSettings.Instance.FontName = btnFont.Text;
+            AppSettings.Instance.FontName = dlg.Font.Name;
         }
     }
 }
