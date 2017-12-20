@@ -9,9 +9,9 @@ namespace MorphClocks
 
         public struct Coords3D
         {
-            public double X { get; set; }
-            public double Y { get; set; }
-            public double Z { get; set; }
+            public float X { get; set; }
+            public float Y { get; set; }
+            public float Z { get; set; }
         }
 
         private enum Shapes
@@ -39,22 +39,18 @@ namespace MorphClocks
         private float VectY = (float)0.00111;
         private float VectZ = (float)0.00180; // Horizontal and vertical projections of the vector of moving 3D-center
 
-        private double VectAX = 0.35; // Поворот (pi) фигуры за 1 секунду
-        private double VectAY = 0.25; // Rotation (pi) of the figure per 1 second
-        private double VectAZ = 0.00;
+        private float VectAX = (float)0.35; // Поворот (pi) фигуры за 1 секунду
+        private float VectAY = (float)0.25; // Rotation (pi) of the figure per 1 second
+        private float VectAZ = (float)0.00;
 
         private int _pIndex;
 
-        private double _scx; // Относительное смещение начала координат
-        private double _scy; // Moving of the beginning of the coordinates center
-        private double _scz;
-
+        private float _scx, _scy, _scz; // Moving of the beginning of the coordinates center
         private int _scrX = 400; // Абсолютные координаты относительного начала координат
         private int _scrY = 300; // Absolute 2D-coordinates of coordinates center
 
-        private double _coefX; // Коэффициент умножения - перевод относительных
-        private double _coefY; // координат в абсолютные / Multiply coefficient for counting absolute coordinates
-        private double _xa, _ya, _za; // Углы поворота вокруг начала координат // Rotate angles around the beginning of the coordinates
+        private float _coefX, _coefY; // Multiply coefficient for converting relative coordinates to absolute
+        private float _xa, _ya, _za; // Rotate angles around the beginning of the coordinates
 
         private readonly Coords3D[] _pCoords1 = new Coords3D[PointsCount];
         private readonly Coords3D[] _pCoords2 = new Coords3D[PointsCount];
@@ -62,14 +58,14 @@ namespace MorphClocks
 
         private int LastTickCount;
         private bool DoUp;
-        private double Wait, Percent;
+        private float Wait, Percent;
         private readonly Random _random;
 
         #region Config
 
         private readonly bool _preview;
-        private const double CamZ = 10;        // Положение камеры(точки свода лучей) - (0, 0, CamZ) // Z-coordinate of camera - (X=0, Y=0, Z=CamZ)
-        private const double ColorZ0 = 1.732;  // 3^0.5 Координата для расчета цвета точки // 3^0.5 Coordinate for the calculation of the color of the point
+        private const float CamZ = 50; //Положение камеры(точки свода лучей) - (0, 0, CamZ) // Z-coordinate of camera - (X=0, Y=0, Z=CamZ)
+        private const float ColorZ0 = (float) 1.732;  // 3^0.5 Координата для расчета цвета точки // 3^0.5 Coordinate for the calculation of the color of the point
         private const int FogCoef = 62;     // Коэффициент тумана / Fog coefficient
         private int WaitPer = 2000; // Time of the figure transformation
 
@@ -87,7 +83,7 @@ namespace MorphClocks
             BackColor = Color.Black;
             UnSortPoints = mixPoints;
             Move3D = move3d;
-            InitShape(_pCoords1);
+            GetRandomShape(_pCoords1);
             CalcPos();
         }
 
@@ -106,7 +102,7 @@ namespace MorphClocks
 
         private void AddPointsBetween(Coords3D[] coordsArr, int index1, int index2, int num)
         {
-            if (num == -1) return;
+            if (num < 1) return;
             for (var i = 1; i <= num; i++)
             {
                 var coords = new Coords3D
@@ -148,9 +144,14 @@ namespace MorphClocks
             AddPoint(coordsArr, coords);
         }
 
-        private Coords3D XYZ(double x, double y, double z)
+        private Coords3D XYZ(float x, float y, float z)
         {
             return new Coords3D { X = x, Y = y, Z = z };
+        }
+
+        private Coords3D XYZ(double x, double y, double z)
+        {
+            return XYZ((float) x, (float) y, (float) z);
         }
 
         #region FIGURES INITIALIZATION
@@ -159,7 +160,7 @@ namespace MorphClocks
         {
             for (var n = 0; n <= PointsCount / 3; n++)
             {
-                var ang = (double)n / PointsCount * 3 * Math.PI * 2;
+                var ang = (float)n / PointsCount * 3 * Math.PI * 2;
                 // pi*2 - full round
                 // n/PointsCount - % of then round
                 // *_* - (div _) how much points at one time
@@ -174,7 +175,7 @@ namespace MorphClocks
         {
             for (var n = 0; n <= PointsCount / 2; n++)
             {
-                var ang = (double)n / PointsCount * 2 * Math.PI * 2; 
+                var ang = (float)n / PointsCount * 2 * Math.PI * 2; 
                 // pi*2 - full round
                 // n/PointsCount - % of then round
                 // *_* - how much points at one time
@@ -188,7 +189,7 @@ namespace MorphClocks
         {
             for (var n = 0; n <= PointsCount / 2; n++)
             {
-                var ang = (double)n / PointsCount * 4 * Math.PI * 2; // pi*2 - full round
+                var ang = (float)n / PointsCount * 4 * Math.PI * 2; // pi*2 - full round
                 // n/PointsCount - % of then round
                 // *_* - how much points at one time
                 var z = Math.Sin(2 * ang);
@@ -248,7 +249,7 @@ namespace MorphClocks
         {
             for (var i = 0; i <= 15; i++)
             {
-                var ang = (double) i / 16 * 2 * Math.PI;
+                var ang = (float) i / 16 * 2 * Math.PI;
                 AddPoint(coordsArr, XYZ(1, 0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang)));
                 AddPoint(coordsArr, XYZ(-1, 0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang)));
                 AddPoint(coordsArr, XYZ(0.75 * Math.Cos(ang), 1, 0.75 * Math.Sin(ang)));
@@ -347,7 +348,7 @@ namespace MorphClocks
         {
             for (var n = 0; n <= 4; n++) //0-9
             {
-                var ang = (double) n / 5 * 2 * Math.PI; // 5 divisions
+                var ang = (float) n / 5 * 2 * Math.PI; // 5 divisions
                 AddPoint(coordsArr, XYZ(Math.Sin(ang), Math.Cos(ang), 0.5));
                 AddPoint(coordsArr, XYZ(Math.Sin(ang + Math.PI / 5), Math.Cos(ang + Math.PI / 5), -0.5));
             }
@@ -370,7 +371,7 @@ namespace MorphClocks
             var IcoPoints = new Coords3D[12];
             for (var n = 0; n <= 4; n++) //0-9
             {
-                var ang = (double) n / 5 * 2 * Math.PI; // 5 divisions
+                var ang = (float) n / 5 * 2 * Math.PI; // 5 divisions
                 IcoPoints[2 * n] = XYZ(Math.Sin(ang), Math.Cos(ang), 0.5);
                 IcoPoints[2 * n + 1] = XYZ(Math.Sin(ang + Math.PI / 5), Math.Cos(ang + Math.PI / 5), -0.5);
             }
@@ -564,7 +565,7 @@ namespace MorphClocks
                 var z = Math.Sin(anga);
                 for (var nokr = 0; nokr <= 9; nokr++)
                 {
-                    var ango = (double)nokr / 10 * Math.PI * 2;
+                    var ango = (float)nokr / 10 * Math.PI * 2;
                     AddPoint(coordsArr, XYZ(Math.Sin(ango) * Math.Sqrt(1 - z * z), Math.Cos(ango) * Math.Sqrt(1 - z * z), z));
                 }
             }
@@ -578,7 +579,7 @@ namespace MorphClocks
                 var z = Math.Sin(anga);
                 for (var nokr = 0; nokr <= 19; nokr++)
                 {
-                    var ango = (double)nokr / 20 * Math.PI * 2;
+                    var ango = (float)nokr / 20 * Math.PI * 2;
                     AddPoint(coordsArr, XYZ(Math.Sin(ango) * Math.Sqrt(1 - z * z), Math.Cos(ango) * Math.Sqrt(1 - z * z), z));
                 }
             }
@@ -588,23 +589,23 @@ namespace MorphClocks
         {
             for (var nsl = -10; nsl <= 9; nsl++)
             {
-                double z;
-                double R;
+                float z;
+                float R;
                 if (nsl <= -4)
                 {
-                    var angs = (double)(nsl + 4) / 6 * Math.PI / 2;
-                    z = Math.Sin(angs) / 2 - 0.5;
-                    R = Math.Cos(angs);
+                    var angs = (float)(nsl + 4) / 6 * Math.PI / 2;
+                    z = (float) (Math.Sin(angs) / 2 - 0.5);
+                    R = (float) Math.Cos(angs);
                 }
                 else
                 {
-                    var angs = (double)(nsl + 4) / 14 * Math.PI / 2;
-                    z = Math.Sin(angs) * 1.5 - 0.5;
-                    R = Math.Cos(angs);
+                    var angs = (float)(nsl + 4) / 14 * Math.PI / 2;
+                    z = (float) (Math.Sin(angs) * 1.5 - 0.5);
+                    R = (float) Math.Cos(angs);
                 }
                 for (var nokr = 0; nokr <= 9; nokr++)
                 {
-                    var ango = (double)nokr / 10 * Math.PI * 2;
+                    var ango = (float)nokr / 10 * Math.PI * 2;
                     AddPoint(coordsArr, XYZ(Math.Sin(ango) * R / 1.5, Math.Cos(ango) * R / 1.5, z));
                 }
             }
@@ -614,11 +615,11 @@ namespace MorphClocks
         {
             for (var n = 0; n <= (PointsCount / 10) - 1; n++)
             {
-                var ang = (double) n / PointsCount * 10 * 2 * Math.PI;
+                var ang = (float) n / PointsCount * 10 * 2 * Math.PI;
                 for (var k = 0; k <= 9; k++)
                 {
-                    var r = 1 + 0.33 * Math.Cos((double) k / 10 * 2 * Math.PI);
-                    var z = 0.33 * Math.Sin((double) k / 10 * 2 * Math.PI);
+                    var r = 1 + 0.33 * Math.Cos((float) k / 10 * 2 * Math.PI);
+                    var z = 0.33 * Math.Sin((float) k / 10 * 2 * Math.PI);
                     var x = r * Math.Cos(ang);
                     var y = r * Math.Sin(ang);
                     AddPoint(coordsArr, XYZ(x, y, z));
@@ -630,7 +631,7 @@ namespace MorphClocks
         {
             for (var n = 0; n <= PointsCount - 1; n++)
             {
-                var angm = (double) n / PointsCount * 2 * Math.PI;
+                var angm = (float) n / PointsCount * 2 * Math.PI;
                 var ang = angm * 16;
                 var z = 0.33 * Math.Sin(ang);
                 var r = 1 + 0.33 * Math.Cos(ang);
@@ -662,13 +663,13 @@ namespace MorphClocks
             }
         }
 
-        private void InitShape(Coords3D[] coordsArr)
+        private void GetRandomShape(Coords3D[] coordsArr)
         {
             _pIndex = 0;
 
             //check all shaper registered
             var possibleShapes = (Shapes[]) Enum.GetValues(typeof(Shapes));
-            var shapeInd = _random.Next(Int32.MaxValue) % possibleShapes.Length;
+            var shapeInd = _random.Next(possibleShapes.Length - 1);
 
             switch (possibleShapes[shapeInd])
             {
@@ -748,8 +749,8 @@ namespace MorphClocks
             var zNorm = 1 - (coords3D.Z + _scz) / CamZ;
             if (zNorm != 0)
             {
-                result.X = (int) Math.Round((coords3D.X + _scx) / zNorm * _coefX) + _scrX;
-                result.Y = (int) Math.Round((coords3D.Y + _scy) / zNorm * _coefY) + _scrY;
+                result.X = (int) ((coords3D.X + _scx) / zNorm * _coefX) + _scrX;
+                result.Y = (int) ((coords3D.Y + _scy) / zNorm * _coefY) + _scrY;
             }
             return result;
         }
@@ -757,12 +758,12 @@ namespace MorphClocks
         private Coords3D Rotate3D(Coords3D coords3D)
         {
             var result = new Coords3D();
-            double sina;
-            double cosa;
+            float sina;
+            float cosa;
             if (_xa != 0)
             {
-                sina = Math.Sin(_xa);
-                cosa = Math.Cos(_xa);
+                sina = (float) Math.Sin(_xa);
+                cosa = (float) Math.Cos(_xa);
                 result.X = coords3D.X;
                 result.Y = coords3D.Y * cosa - coords3D.Z * sina;
                 result.Z = coords3D.Y * sina + coords3D.Z * cosa;
@@ -774,8 +775,8 @@ namespace MorphClocks
 
             if (_ya != 0)
             {
-                sina = Math.Sin(_ya);
-                cosa = Math.Cos(_ya);
+                sina = (float) Math.Sin(_ya);
+                cosa = (float) Math.Cos(_ya);
 
                 result.X = coords3D.X * cosa + coords3D.Z * sina;
                 result.Y = coords3D.Y;
@@ -788,8 +789,8 @@ namespace MorphClocks
 
             if (_za != 0)
             {
-                sina = Math.Sin(_za);
-                cosa = Math.Cos(_za);
+                sina = (float) Math.Sin(_za);
+                cosa = (float) Math.Cos(_za);
                 result.X = coords3D.X * cosa - coords3D.Y * sina;
                 result.Y = coords3D.X * sina + coords3D.Y * cosa;
                 result.Z = coords3D.Z;
@@ -820,8 +821,8 @@ namespace MorphClocks
         {
             _scrX = rect.Right / 2;
             _scrY = rect.Bottom / 2;
-            _coefX = (double)rect.Right / 8;
-            _coefY = (double)rect.Bottom / 6;
+            _coefX = (float)rect.Right / 8;
+            _coefY = (float)rect.Bottom / 6;
 
             const int minTimeDelta = 10;
             const int maxTimeDelta = 200;
@@ -839,55 +840,55 @@ namespace MorphClocks
             {
                 if (DoUp)
                 {
-                    Percent = Percent + (double)timeDelta / 10;
+                    Percent = Percent + (float)timeDelta / 10;
                     if (Percent >= 100)
                     {
                         Percent = 100;
                         DoUp = false;
                         Wait = WaitPer;
-                        InitShape(_pCoords1);
+                        GetRandomShape(_pCoords1);
                     }
                 }
                 else
                 {
-                    Percent = Percent - (double)timeDelta / 10;
+                    Percent = Percent - (float)timeDelta / 10;
                     if (Percent <= 0)
                     {
                         Percent = 0;
                         DoUp = true;
                         Wait = WaitPer;
-                        InitShape(_pCoords2);
+                        GetRandomShape(_pCoords2);
                     }
                 }
                 CalcPos();
             }
 
-            _xa = _xa + timeDelta * Math.PI * VectAX / 1000;
-            _ya = _ya + timeDelta * Math.PI * VectAY / 1000;
-            _za = _za - timeDelta * Math.PI * VectAZ / 1000;
+            _xa = (float) (_xa + timeDelta * Math.PI * VectAX / 1000);
+            _ya = (float) (_ya + timeDelta * Math.PI * VectAY / 1000);
+            _za = (float) (_za - timeDelta * Math.PI * VectAZ / 1000);
 
             _scx = _scx + VectX * timeDelta;
             if (_scx > 3.5 - _scz / 2.5 || (_scx > 2.75 && !Move3D))
             {
                 VectX = -Math.Abs(VectX);
-                VectAY = -Math.Abs(_random.NextDouble() / 3 + 0.25);
+                VectAY = (float) -Math.Abs(_random.NextDouble() / 3 + 0.25);
             }
             if(_scx<-3.5+_scz/2.5 || _scx<-2.75 && !Move3D)
             {
                 VectX = Math.Abs(VectX);
-                VectAY = Math.Abs(_random.NextDouble() / 3 + 0.25);
+                VectAY = (float) Math.Abs(_random.NextDouble() / 3 + 0.25);
             }
 
             _scy = _scy+VectY* timeDelta;
             if(_scy>3-_scz/3 || _scy>1.8 && !Move3D)
             {
                 VectY = -Math.Abs(VectY);
-                VectAX = -Math.Abs(_random.NextDouble() / 3 + 0.25);
+                VectAX = (float) -Math.Abs(_random.NextDouble() / 3 + 0.25);
             }
             if (_scy < -3 + _scz / 3 || _scy < -1.8 && !Move3D)
             {
                 VectY = Math.Abs(VectY);
-                VectAX = Math.Abs(_random.NextDouble() / 3 + 0.25);
+                VectAX = (float) Math.Abs(_random.NextDouble() / 3 + 0.25);
             }
 
             if (Move3D)
@@ -896,14 +897,14 @@ namespace MorphClocks
                 if (_scz > 4)
                 {
                     VectZ = -Math.Abs(VectZ);
-                    VectAX = -Math.Abs(_random.NextDouble() / 3 + 0.25);
-                    VectAY = -Math.Abs(_random.NextDouble() / 3 + 0.25);
+                    VectAX = (float) -Math.Abs(_random.NextDouble() / 3 + 0.25);
+                    VectAY = (float) -Math.Abs(_random.NextDouble() / 3 + 0.25);
                 }
                 if (_scz < -10)
                 {
                     VectZ = Math.Abs(VectZ);
-                    VectAX = Math.Abs(_random.NextDouble() / 3 + 0.25);
-                    VectAY = Math.Abs(_random.NextDouble() / 3 + 0.25);
+                    VectAX = (float) Math.Abs(_random.NextDouble() / 3 + 0.25);
+                    VectAY = (float) Math.Abs(_random.NextDouble() / 3 + 0.25);
                 }
             }
 

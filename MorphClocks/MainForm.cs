@@ -25,7 +25,7 @@ namespace MorphClocks
 
         readonly bool IsPreviewMode;
         private Painter painter;
-        private Timer _timer;
+        private readonly Timer _timer;
 
         #region Constructors
 
@@ -86,7 +86,7 @@ namespace MorphClocks
         private void MainForm_Paint(object sender, PaintEventArgs e)
         {
             //create the bitmap and graphics
-            var r = this.ClientRectangle;
+            var r = ClientRectangle;
             using (var bitmap = new Bitmap(r.Width, r.Height))
             //var bitmap = new Bitmap(r.Width, r.Height);
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
+using System.Reflection;
 
 namespace MorphClocks
 {
@@ -20,10 +21,12 @@ namespace MorphClocks
         private readonly bool _drawCircle;
         private readonly bool _backTimer;
         private readonly int _workEnd;
-        private readonly Color _textColor;
         private readonly Color _linesColor;
         private readonly List<Shape> _shapes;
         private readonly Random _random;
+
+        private readonly bool _colorRandomizer;
+        public Color TextColor { get; set; }
 
         //snowflake particles
         private readonly int _flakesCount; //max particles
@@ -36,7 +39,9 @@ namespace MorphClocks
 
             _previewMode = previewMode;
             _fontName = fontName;
-            _textColor = textColor;
+            TextColor = textColor;
+            if (textColor == Color.Black || textColor.GetBrightness() < 0.1)
+                _colorRandomizer = true;
             _linesColor = linesColor;
             _backTimer = backTimer;
             _workEnd = workEnd;
@@ -51,6 +56,33 @@ namespace MorphClocks
                 _flakesCount = _random.Next(25, 100);
                 PrepareSnowFlakes(rect);
             }
+        }
+
+        public static List<Color> GetStaticPropertyBag()
+        {
+            const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
+            var map = new List<Color>();
+            foreach (var prop in typeof(Color).GetProperties(flags))
+            {
+                var c = (Color)prop.GetValue(null, null);
+                map.Add(c);
+            }
+            return map;
+        }
+
+        private readonly List<Color> _colors = GetStaticPropertyBag();
+
+        static DateTime _cChangedTime = DateTime.Now;
+        static int _cIdx = 1;
+        public Color ColorRandomizer()
+        {
+            if (_cChangedTime.AddSeconds(3) < DateTime.Now)
+            {
+                _cIdx = _random.Next(1, _colors.Count-1);
+                _cChangedTime = DateTime.Now;
+            }
+            return _colors[_cIdx];
         }
 
         private void PrepareSnowFlakes(Rectangle rect)
@@ -124,6 +156,8 @@ namespace MorphClocks
 
         public void UpdateDisplay(Graphics graphics, Rectangle rect)
         {
+            if (_colorRandomizer)
+                TextColor = ColorRandomizer();
             //setting the color palette
             var nowTime = DateTime.Now;
             var workEnd = 0;
@@ -183,7 +217,7 @@ namespace MorphClocks
                 }
 
                 //Label and Timer paint
-                using (var textBrush = new SolidBrush(_textColor))
+                using (var textBrush = new SolidBrush(TextColor))
                 {
                     using (var textFont = CheckFontExists(_fontName)
                         ? new Font(_fontName, size, _previewMode ? FontStyle.Regular : FontStyle.Bold)
