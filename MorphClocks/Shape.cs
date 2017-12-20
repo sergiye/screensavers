@@ -35,15 +35,13 @@ namespace MorphClocks
             shCube2
         }
 
-        private double VectX = 0.00093; // Проекции вектора движения центра отсчета начала координат
-        private double VectY = 0.00111;
-        private double VectZ = 0.00180; // Horizontal and vertical projections of the vector of moving 3D-center
+        private float VectX = (float)0.00093; // Проекции вектора движения центра отсчета начала координат
+        private float VectY = (float)0.00111;
+        private float VectZ = (float)0.00180; // Horizontal and vertical projections of the vector of moving 3D-center
 
         private double VectAX = 0.35; // Поворот (pi) фигуры за 1 секунду
         private double VectAY = 0.25; // Rotation (pi) of the figure per 1 second
         private double VectAZ = 0.00;
-
-        private readonly Random _random;
 
         private int _pIndex;
 
@@ -63,24 +61,23 @@ namespace MorphClocks
         private readonly Coords3D[] _points = new Coords3D[PointsCount];
 
         private int LastTickCount;
-
-        private readonly bool _preview;
-
         private bool DoUp;
         private double Wait, Percent;
+        private readonly Random _random;
 
         #region Config
 
+        private readonly bool _preview;
         private const double CamZ = 10;        // Положение камеры(точки свода лучей) - (0, 0, CamZ) // Z-coordinate of camera - (X=0, Y=0, Z=CamZ)
         private const double ColorZ0 = 1.732;  // 3^0.5 Координата для расчета цвета точки // 3^0.5 Coordinate for the calculation of the color of the point
         private const int FogCoef = 62;     // Коэффициент тумана / Fog coefficient
         private int WaitPer = 2000; // Time of the figure transformation
 
-        public bool ShowFPS { get; set; }
-        readonly bool UnSortPoints;
-        readonly bool Move3D;
-
+        public bool UnSortPoints { get; set; }
+        public bool Move3D { get; set; }
         public Color BackColor { get; set; }
+
+        #endregion Config
 
         public Shape(bool preview, bool move3d, bool mixPoints)
         {
@@ -94,19 +91,17 @@ namespace MorphClocks
             CalcPos();
         }
 
-        #endregion Config
-
-        private void AddPoint(Coords3D[] CoordsArr, Coords3D Coords)
+        private void AddPoint(Coords3D[] coordsArr, Coords3D coords)
         {
-            if(0<=_pIndex && _pIndex<=PointsCount-1) 
-                CoordsArr[_pIndex] = Coords;
+            if(0<=_pIndex && _pIndex<=PointsCount-1)
+                coordsArr[_pIndex] = coords;
             _pIndex++;
         }
 
-        private void DupPoint(Coords3D[] CoordsArr, int Index)
+        private void DupPoint(Coords3D[] coordsArr, int index)
         {
-            if (Index <= PointsCount - 1)
-                AddPoint(CoordsArr, CoordsArr[Index]);
+            if (index <= PointsCount - 1)
+                AddPoint(coordsArr, coordsArr[index]);
         }
 
         private void AddPointsBetween(Coords3D[] coordsArr, int index1, int index2, int num)
@@ -127,7 +122,7 @@ namespace MorphClocks
             }
         }
 
-        private void AddPointBetween3(Coords3D[] CoordsArr, Coords3D Coords1, Coords3D Coords2, Coords3D Coords3)
+        private void AddPointBetween3(Coords3D[] coordsArr, Coords3D coords1, Coords3D coords2, Coords3D coords3)
         {
             //      1
             //     / \
@@ -138,36 +133,36 @@ namespace MorphClocks
 
             var coordsH = new Coords3D
                           {
-                              X = (Coords2.X + Coords3.X) / 2,
-                              Y = (Coords2.Y + Coords3.Y) / 2,
-                              Z = (Coords2.Z + Coords3.Z) / 2
+                              X = (coords2.X + coords3.X) / 2,
+                              Y = (coords2.Y + coords3.Y) / 2,
+                              Z = (coords2.Z + coords3.Z) / 2
                           };
 
             var coords = new Coords3D
                          {
-                             X = Coords1.X + (coordsH.X - Coords1.X) * 2 / 3,
-                             Y = Coords1.Y + (coordsH.Y - Coords1.Y) * 2 / 3,
-                             Z = Coords1.Z + (coordsH.Z - Coords1.Z) * 2 / 3
+                             X = coords1.X + (coordsH.X - coords1.X) * 2 / 3,
+                             Y = coords1.Y + (coordsH.Y - coords1.Y) * 2 / 3,
+                             Z = coords1.Z + (coordsH.Z - coords1.Z) * 2 / 3
                          };
 
-            AddPoint(CoordsArr, coords);
+            AddPoint(coordsArr, coords);
         }
 
-        private Coords3D XYZ(double X, double Y, double Z)
+        private Coords3D XYZ(double x, double y, double z)
         {
-            return new Coords3D { X = X, Y = Y, Z = Z };
+            return new Coords3D { X = x, Y = y, Z = z };
         }
 
         #region FIGURES INITIALIZATION
 
-        private void InitTriangle1(Coords3D[] coordsArr) // кривая 1/ curve 1
+        private void InitTriangle1(Coords3D[] coordsArr) 
         {
             for (var n = 0; n <= PointsCount / 3; n++)
             {
                 var ang = (double)n / PointsCount * 3 * Math.PI * 2;
-                // pi*2 - полная окружность / full round
-                // n/PointsCount - % круга / of then round
-                // *_* - сколько точек за раз (div _) / how much points at one time
+                // pi*2 - full round
+                // n/PointsCount - % of then round
+                // *_* - (div _) how much points at one time
                 var z = Math.Sin(2 * ang);
                 AddPoint(coordsArr, XYZ(Math.Sin(ang), Math.Cos(ang), z));
                 AddPoint(coordsArr, XYZ(Math.Cos(ang), z, Math.Sin(ang)));
@@ -175,169 +170,169 @@ namespace MorphClocks
             }
         }
 
-        private void InitTriangle2(Coords3D[] CoordsArr) // кривая 2 / curve 2
+        private void InitTriangle2(Coords3D[] coordsArr)
         {
             for (var n = 0; n <= PointsCount / 2; n++)
             {
                 var ang = (double)n / PointsCount * 2 * Math.PI * 2; 
-                // pi*2 - полная окружность / full round
-                // n/PointsCount - % круга / of then round
-                // *_* - сколько точек за раз (div _) / how much points at one time
+                // pi*2 - full round
+                // n/PointsCount - % of then round
+                // *_* - how much points at one time
                 var z = Math.Sin(2 * ang);
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang) * Math.Sqrt(1 - z), Math.Cos(ang) * Math.Sqrt(1 + z), z));
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang + Math.PI / 2) * Math.Sqrt(1 - z), Math.Cos(ang + Math.PI / 2) * Math.Sqrt(1 + z), z));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang) * Math.Sqrt(1 - z), Math.Cos(ang) * Math.Sqrt(1 + z), z));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang + Math.PI / 2) * Math.Sqrt(1 - z), Math.Cos(ang + Math.PI / 2) * Math.Sqrt(1 + z), z));
             }
         }
 
-        private void InitTriangle3(Coords3D[] CoordsArr) // кривая 3 / curve 3
+        private void InitTriangle3(Coords3D[] coordsArr)
         {
             for (var n = 0; n <= PointsCount / 2; n++)
             {
-                var ang = (double)n / PointsCount * 4 * Math.PI * 2; // pi*2 - полная окружность / full round
-                // n/PointsCount - % круга / of then round
-                // *_* - сколько точек за раз (div _) / how much points at one time
+                var ang = (double)n / PointsCount * 4 * Math.PI * 2; // pi*2 - full round
+                // n/PointsCount - % of then round
+                // *_* - how much points at one time
                 var z = Math.Sin(2 * ang);
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang) * Math.Sqrt(1 - z), Math.Cos(ang) * Math.Sqrt(1 + z), z));
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang + Math.PI / 2) * Math.Sqrt(1 - z), Math.Cos(ang + Math.PI / 2) * Math.Sqrt(1 + z), z));
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang) * Math.Sqrt(1 + z), Math.Cos(ang) * Math.Sqrt(1 - z), z));
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang + Math.PI / 2) * Math.Sqrt(1 + z), Math.Cos(ang + Math.PI / 2) * Math.Sqrt(1 - z), z));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang) * Math.Sqrt(1 - z), Math.Cos(ang) * Math.Sqrt(1 + z), z));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang + Math.PI / 2) * Math.Sqrt(1 - z), Math.Cos(ang + Math.PI / 2) * Math.Sqrt(1 + z), z));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang) * Math.Sqrt(1 + z), Math.Cos(ang) * Math.Sqrt(1 - z), z));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang + Math.PI / 2) * Math.Sqrt(1 + z), Math.Cos(ang + Math.PI / 2) * Math.Sqrt(1 - z), z));
             }
         }
 
-        private void InitPyramideTri(Coords3D[] CoordsArr) // тетраэдр / tetraedr
+        private void InitPyramideTri(Coords3D[] coordsArr) // tetrahedral
         {
-            AddPoint(CoordsArr, XYZ(1, 1, 1));    // 1
-            AddPoint(CoordsArr, XYZ(-1, -1, 1)); // 2
-            AddPoint(CoordsArr, XYZ(1, -1, -1)); // 3
-            AddPoint(CoordsArr, XYZ(-1, 1, -1));  // 4
+            AddPoint(coordsArr, XYZ(1, 1, 1));    // 1
+            AddPoint(coordsArr, XYZ(-1, -1, 1)); // 2
+            AddPoint(coordsArr, XYZ(1, -1, -1)); // 3
+            AddPoint(coordsArr, XYZ(-1, 1, -1));  // 4
 
-            AddPoint(CoordsArr, XYZ(1, 1, 1));    // 1
-            AddPoint(CoordsArr, XYZ(-1, -1, 1)); // 2
-            AddPoint(CoordsArr, XYZ(1, -1, -1)); // 3
-            AddPoint(CoordsArr, XYZ(-1, 1, -1));  // 4
+            AddPoint(coordsArr, XYZ(1, 1, 1));    // 1
+            AddPoint(coordsArr, XYZ(-1, -1, 1)); // 2
+            AddPoint(coordsArr, XYZ(1, -1, -1)); // 3
+            AddPoint(coordsArr, XYZ(-1, 1, -1));  // 4
 
-            AddPointsBetween(CoordsArr, 0, 1, 32);
-            AddPointsBetween(CoordsArr, 1, 2, 32);
-            AddPointsBetween(CoordsArr, 2, 3, 32);
-            AddPointsBetween(CoordsArr, 0, 2, 32);
-            AddPointsBetween(CoordsArr, 0, 3, 32);
-            AddPointsBetween(CoordsArr, 1, 3, 32);
+            AddPointsBetween(coordsArr, 0, 1, 32);
+            AddPointsBetween(coordsArr, 1, 2, 32);
+            AddPointsBetween(coordsArr, 2, 3, 32);
+            AddPointsBetween(coordsArr, 0, 2, 32);
+            AddPointsBetween(coordsArr, 0, 3, 32);
+            AddPointsBetween(coordsArr, 1, 3, 32);
         }
 
-        private void InitCube(Coords3D[] CoordsArr) // гексаэдр, куб / cube
+        private void InitCube(Coords3D[] coordsArr) // гексаэдр, куб / cube
         {
-            AddPoint(CoordsArr, XYZ(1, 1, 1)); // 0
-            AddPoint(CoordsArr, XYZ(-1, 1, 1)); // 1
-            AddPoint(CoordsArr, XYZ(1, -1, 1)); // 2
-            AddPoint(CoordsArr, XYZ(1, 1, -1)); // 3
-            AddPoint(CoordsArr, XYZ(-1, -1, 1)); // 4
-            AddPoint(CoordsArr, XYZ(1, -1, -1)); // 5
-            AddPoint(CoordsArr, XYZ(-1, 1, -1)); // 6
-            AddPoint(CoordsArr, XYZ(-1, -1, -1)); // 7
+            AddPoint(coordsArr, XYZ(1, 1, 1)); // 0
+            AddPoint(coordsArr, XYZ(-1, 1, 1)); // 1
+            AddPoint(coordsArr, XYZ(1, -1, 1)); // 2
+            AddPoint(coordsArr, XYZ(1, 1, -1)); // 3
+            AddPoint(coordsArr, XYZ(-1, -1, 1)); // 4
+            AddPoint(coordsArr, XYZ(1, -1, -1)); // 5
+            AddPoint(coordsArr, XYZ(-1, 1, -1)); // 6
+            AddPoint(coordsArr, XYZ(-1, -1, -1)); // 7
 
-            AddPointsBetween(CoordsArr, 0, 1, 16);
-            AddPointsBetween(CoordsArr, 0, 2, 16);
-            AddPointsBetween(CoordsArr, 0, 3, 16);
-            AddPointsBetween(CoordsArr, 1, 4, 16);
-            AddPointsBetween(CoordsArr, 1, 6, 16);
-            AddPointsBetween(CoordsArr, 2, 4, 16);
-            AddPointsBetween(CoordsArr, 2, 5, 16);
-            AddPointsBetween(CoordsArr, 3, 5, 16);
-            AddPointsBetween(CoordsArr, 3, 6, 16);
-            AddPointsBetween(CoordsArr, 4, 7, 16);
-            AddPointsBetween(CoordsArr, 5, 7, 16);
-            AddPointsBetween(CoordsArr, 6, 7, 16);
+            AddPointsBetween(coordsArr, 0, 1, 16);
+            AddPointsBetween(coordsArr, 0, 2, 16);
+            AddPointsBetween(coordsArr, 0, 3, 16);
+            AddPointsBetween(coordsArr, 1, 4, 16);
+            AddPointsBetween(coordsArr, 1, 6, 16);
+            AddPointsBetween(coordsArr, 2, 4, 16);
+            AddPointsBetween(coordsArr, 2, 5, 16);
+            AddPointsBetween(coordsArr, 3, 5, 16);
+            AddPointsBetween(coordsArr, 3, 6, 16);
+            AddPointsBetween(coordsArr, 4, 7, 16);
+            AddPointsBetween(coordsArr, 5, 7, 16);
+            AddPointsBetween(coordsArr, 6, 7, 16);
         }
 
-        private void InitPlayingCube(Coords3D[] CoordsArr) // Игральный кубик / Play cube
+        private void InitPlayingCube(Coords3D[] coordsArr) // Play cube
         {
             for (var i = 0; i <= 15; i++)
             {
                 var ang = (double) i / 16 * 2 * Math.PI;
-                AddPoint(CoordsArr, XYZ(1, 0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(-1, 0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(0.75 * Math.Cos(ang), 1, 0.75 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(0.75 * Math.Cos(ang), -1, 0.75 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang), 1));
-                AddPoint(CoordsArr, XYZ(0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang), -1));
+                AddPoint(coordsArr, XYZ(1, 0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(-1, 0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(0.75 * Math.Cos(ang), 1, 0.75 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(0.75 * Math.Cos(ang), -1, 0.75 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang), 1));
+                AddPoint(coordsArr, XYZ(0.75 * Math.Cos(ang), 0.75 * Math.Sin(ang), -1));
             }
 
             for (var i = 0; i <= 11; i++)
             {
                 var ang = i / 12 * 2 * Math.PI;
-                AddPoint(CoordsArr, XYZ(0.875, 0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(-0.875, 0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(0.875 * Math.Cos(ang), 0.875, 0.875 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(0.875 * Math.Cos(ang), -0.875, 0.875 * Math.Sin(ang)));
-                AddPoint(CoordsArr, XYZ(0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang), 0.875)); // 7/8
-                AddPoint(CoordsArr, XYZ(0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang), -0.875));
+                AddPoint(coordsArr, XYZ(0.875, 0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(-0.875, 0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(0.875 * Math.Cos(ang), 0.875, 0.875 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(0.875 * Math.Cos(ang), -0.875, 0.875 * Math.Sin(ang)));
+                AddPoint(coordsArr, XYZ(0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang), 0.875)); // 7/8
+                AddPoint(coordsArr, XYZ(0.875 * Math.Cos(ang), 0.875 * Math.Sin(ang), -0.875));
             }
 
-            AddPoint(CoordsArr, XYZ(0.725, 0.725, 0.725));
-            AddPoint(CoordsArr, XYZ(-0.725, 0.725, 0.725));
-            AddPoint(CoordsArr, XYZ(0.725, -0.725, 0.725));
-            AddPoint(CoordsArr, XYZ(0.725, 0.725, -0.725));
-            AddPoint(CoordsArr, XYZ(-0.725, -0.725, 0.725));
-            AddPoint(CoordsArr, XYZ(0.725, -0.725, -0.725));
-            AddPoint(CoordsArr, XYZ(-0.725, 0.725, -0.725));
-            AddPoint(CoordsArr, XYZ(-0.725, -0.725, -0.725));
+            AddPoint(coordsArr, XYZ(0.725, 0.725, 0.725));
+            AddPoint(coordsArr, XYZ(-0.725, 0.725, 0.725));
+            AddPoint(coordsArr, XYZ(0.725, -0.725, 0.725));
+            AddPoint(coordsArr, XYZ(0.725, 0.725, -0.725));
+            AddPoint(coordsArr, XYZ(-0.725, -0.725, 0.725));
+            AddPoint(coordsArr, XYZ(0.725, -0.725, -0.725));
+            AddPoint(coordsArr, XYZ(-0.725, 0.725, -0.725));
+            AddPoint(coordsArr, XYZ(-0.725, -0.725, -0.725));
 
-            AddPoint(CoordsArr, XYZ(0, 0, 1));
+            AddPoint(coordsArr, XYZ(0, 0, 1));
 
-            AddPoint(CoordsArr, XYZ(0.25, 1, 0.25));
-            AddPoint(CoordsArr, XYZ(-0.25, 1, -0.25));
+            AddPoint(coordsArr, XYZ(0.25, 1, 0.25));
+            AddPoint(coordsArr, XYZ(-0.25, 1, -0.25));
 
-            AddPoint(CoordsArr, XYZ(-1, -0.25, 0.25));
-            AddPoint(CoordsArr, XYZ(-1, 0, 0));
-            AddPoint(CoordsArr, XYZ(-1, 0.25, -0.25));
+            AddPoint(coordsArr, XYZ(-1, -0.25, 0.25));
+            AddPoint(coordsArr, XYZ(-1, 0, 0));
+            AddPoint(coordsArr, XYZ(-1, 0.25, -0.25));
 
-            AddPoint(CoordsArr, XYZ(0.25, 0.25, -1));
-            AddPoint(CoordsArr, XYZ(-0.25, 0.25, -1));
-            AddPoint(CoordsArr, XYZ(0.25, -0.25, -1));
-            AddPoint(CoordsArr, XYZ(-0.25, -0.25, -1));
+            AddPoint(coordsArr, XYZ(0.25, 0.25, -1));
+            AddPoint(coordsArr, XYZ(-0.25, 0.25, -1));
+            AddPoint(coordsArr, XYZ(0.25, -0.25, -1));
+            AddPoint(coordsArr, XYZ(-0.25, -0.25, -1));
 
-            AddPoint(CoordsArr, XYZ(1, 0.25, 0.25));
-            AddPoint(CoordsArr, XYZ(1, -0.25, 0.25));
-            AddPoint(CoordsArr, XYZ(1, 0.25, -0.25));
-            AddPoint(CoordsArr, XYZ(1, -0.25, -0.25));
-            AddPoint(CoordsArr, XYZ(1, 0, 0));
+            AddPoint(coordsArr, XYZ(1, 0.25, 0.25));
+            AddPoint(coordsArr, XYZ(1, -0.25, 0.25));
+            AddPoint(coordsArr, XYZ(1, 0.25, -0.25));
+            AddPoint(coordsArr, XYZ(1, -0.25, -0.25));
+            AddPoint(coordsArr, XYZ(1, 0, 0));
 
-            AddPoint(CoordsArr, XYZ(0, -1, 0.4));
-            AddPoint(CoordsArr, XYZ(-0.2, -1, 0.2));
-            AddPoint(CoordsArr, XYZ(-0.4, -1, 0));
-            AddPoint(CoordsArr, XYZ(0.4, -1, 0));
-            AddPoint(CoordsArr, XYZ(0.2, -1, -0.2));
-            AddPoint(CoordsArr, XYZ(0, -1, -0.4));
+            AddPoint(coordsArr, XYZ(0, -1, 0.4));
+            AddPoint(coordsArr, XYZ(-0.2, -1, 0.2));
+            AddPoint(coordsArr, XYZ(-0.4, -1, 0));
+            AddPoint(coordsArr, XYZ(0.4, -1, 0));
+            AddPoint(coordsArr, XYZ(0.2, -1, -0.2));
+            AddPoint(coordsArr, XYZ(0, -1, -0.4));
 
             for (var i = 0; i<=2; i++)
-                DupPoint(CoordsArr, i);
+                DupPoint(coordsArr, i);
         }
 
-        private void InitOctaedr(Coords3D[] CoordsArr) // октаэдр / octaedr
+        private void InitOctaedr(Coords3D[] coordsArr) // octahedral
         {
-            AddPoint(CoordsArr, XYZ(0, 0, 1)); // 2
-            AddPoint(CoordsArr, XYZ(1, 0, 0)); // 0
-            AddPoint(CoordsArr, XYZ(0, 1, 0)); // 1
-            AddPoint(CoordsArr, XYZ(-1, 0, 0)); // 3
-            AddPoint(CoordsArr, XYZ(0, -1, 0)); // 4
-            AddPoint(CoordsArr, XYZ(0, 0, -1)); // 5
+            AddPoint(coordsArr, XYZ(0, 0, 1)); // 2
+            AddPoint(coordsArr, XYZ(1, 0, 0)); // 0
+            AddPoint(coordsArr, XYZ(0, 1, 0)); // 1
+            AddPoint(coordsArr, XYZ(-1, 0, 0)); // 3
+            AddPoint(coordsArr, XYZ(0, -1, 0)); // 4
+            AddPoint(coordsArr, XYZ(0, 0, -1)); // 5
 
-            AddPoint(CoordsArr, XYZ(0, 0, 1));
-            AddPoint(CoordsArr, XYZ(0, 0, -1));
+            AddPoint(coordsArr, XYZ(0, 0, 1));
+            AddPoint(coordsArr, XYZ(0, 0, -1));
 
-            AddPointsBetween(CoordsArr, 0, 1, 16);
-            AddPointsBetween(CoordsArr, 0, 2, 16);
-            AddPointsBetween(CoordsArr, 0, 3, 16);
-            AddPointsBetween(CoordsArr, 0, 4, 16);
-            AddPointsBetween(CoordsArr, 1, 2, 16);
-            AddPointsBetween(CoordsArr, 2, 3, 16);
+            AddPointsBetween(coordsArr, 0, 1, 16);
+            AddPointsBetween(coordsArr, 0, 2, 16);
+            AddPointsBetween(coordsArr, 0, 3, 16);
+            AddPointsBetween(coordsArr, 0, 4, 16);
+            AddPointsBetween(coordsArr, 1, 2, 16);
+            AddPointsBetween(coordsArr, 2, 3, 16);
 
-            AddPointsBetween(CoordsArr, 3, 4, 16);
-            AddPointsBetween(CoordsArr, 4, 1, 16);
-            AddPointsBetween(CoordsArr, 5, 1, 16);
-            AddPointsBetween(CoordsArr, 5, 2, 16);
-            AddPointsBetween(CoordsArr, 5, 3, 16);
-            AddPointsBetween(CoordsArr, 5, 4, 16);
+            AddPointsBetween(coordsArr, 3, 4, 16);
+            AddPointsBetween(coordsArr, 4, 1, 16);
+            AddPointsBetween(coordsArr, 5, 1, 16);
+            AddPointsBetween(coordsArr, 5, 2, 16);
+            AddPointsBetween(coordsArr, 5, 3, 16);
+            AddPointsBetween(coordsArr, 5, 4, 16);
         }
 
         private int GM9(int num)
@@ -348,34 +343,34 @@ namespace MorphClocks
             return result;
         }
 
-        private void InitIcosaedr(Coords3D[] CoordsArr) // икосаэдр / icosaedr
+        private void InitIcosaedr(Coords3D[] coordsArr) // icosahedra
         {
             for (var n = 0; n <= 4; n++) //0-9
             {
-                var ang = (double) n / 5 * 2 * Math.PI; // 5 делений / 5 divisions
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang), Math.Cos(ang), 0.5));
-                AddPoint(CoordsArr, XYZ(Math.Sin(ang + Math.PI / 5), Math.Cos(ang + Math.PI / 5), -0.5));
+                var ang = (double) n / 5 * 2 * Math.PI; // 5 divisions
+                AddPoint(coordsArr, XYZ(Math.Sin(ang), Math.Cos(ang), 0.5));
+                AddPoint(coordsArr, XYZ(Math.Sin(ang + Math.PI / 5), Math.Cos(ang + Math.PI / 5), -0.5));
             }
 
-            AddPoint(CoordsArr, XYZ(0, 0, Math.Sqrt(5) / 2));  // 10
-            AddPoint(CoordsArr, XYZ(0, 0, -Math.Sqrt(5) / 2)); // 11
+            AddPoint(coordsArr, XYZ(0, 0, Math.Sqrt(5) / 2));  // 10
+            AddPoint(coordsArr, XYZ(0, 0, -Math.Sqrt(5) / 2)); // 11
 
             for (var n = 0; n <= 9; n++)
             {
-                AddPointsBetween(CoordsArr, n, GM9(n + 1), 6);
-                AddPointsBetween(CoordsArr, n, GM9(n + 2), 6);
-                AddPointsBetween(CoordsArr, n, 10 + (n % 2), 6);
+                AddPointsBetween(coordsArr, n, GM9(n + 1), 6);
+                AddPointsBetween(coordsArr, n, GM9(n + 2), 6);
+                AddPointsBetween(coordsArr, n, 10 + (n % 2), 6);
             }
             for (var n = 0; n <= 7; n++)
-                DupPoint(CoordsArr, n);
+                DupPoint(coordsArr, n);
         }
 
-        private void InitDodecaedr(Coords3D[] CoordsArr) // додекаэдр / dodecaedr
+        private void InitDodecaedr(Coords3D[] coordsArr) // dodecahedra
         {
             var IcoPoints = new Coords3D[12];
             for (var n = 0; n <= 4; n++) //0-9
             {
-                var ang = (double) n / 5 * 2 * Math.PI; // 5 делений / 5 divisions
+                var ang = (double) n / 5 * 2 * Math.PI; // 5 divisions
                 IcoPoints[2 * n] = XYZ(Math.Sin(ang), Math.Cos(ang), 0.5);
                 IcoPoints[2 * n + 1] = XYZ(Math.Sin(ang + Math.PI / 5), Math.Cos(ang + Math.PI / 5), -0.5);
             }
@@ -384,184 +379,184 @@ namespace MorphClocks
             IcoPoints[11] = XYZ(0, 0, -Math.Sqrt(5) / 2); // 11
 
             for (var n = 0; n <= 9; n++)
-                AddPointBetween3(CoordsArr, IcoPoints[n], IcoPoints[GM9(n + 1)], IcoPoints[GM9(n + 2)]);
+                AddPointBetween3(coordsArr, IcoPoints[n], IcoPoints[GM9(n + 1)], IcoPoints[GM9(n + 2)]);
 
             for (var n = 0; n <= 4; n++)
             {
-                AddPointBetween3(CoordsArr, IcoPoints[10], IcoPoints[2 * n], IcoPoints[GM9(2 * n + 2)]);
-                AddPointBetween3(CoordsArr, IcoPoints[11], IcoPoints[2 * n + 1], IcoPoints[GM9(2 * n + 3)]);
+                AddPointBetween3(coordsArr, IcoPoints[10], IcoPoints[2 * n], IcoPoints[GM9(2 * n + 2)]);
+                AddPointBetween3(coordsArr, IcoPoints[11], IcoPoints[2 * n + 1], IcoPoints[GM9(2 * n + 3)]);
             }
 
             for (var n = 0; n <= 9; n++)
-                AddPointsBetween(CoordsArr, n, GM9(n + 1), 6);
+                AddPointsBetween(coordsArr, n, GM9(n + 1), 6);
 
             for (var n = 0; n <= 4; n++)
             {
-                AddPointsBetween(CoordsArr, 2 * n + 10, GM9(2 * n + 2) + 10, 6);
-                AddPointsBetween(CoordsArr, 2 * n + 11, GM9(2 * n + 2) + 11, 6);
+                AddPointsBetween(coordsArr, 2 * n + 10, GM9(2 * n + 2) + 10, 6);
+                AddPointsBetween(coordsArr, 2 * n + 11, GM9(2 * n + 2) + 11, 6);
             }
 
             for (var n = 0; n <= 9; n++)
-                AddPointsBetween(CoordsArr, n, n + 10, 6);
+                AddPointsBetween(coordsArr, n, n + 10, 6);
         }
 
-        private void InitPyramideCut(Coords3D[] CoordsArr)
+        private void InitPyramideCut(Coords3D[] coordsArr)
         {
-            AddPoint(CoordsArr, XYZ(0.33, 0.33, 1));   // 0
-            AddPoint(CoordsArr, XYZ(1, 0.33, 0.33));   // 1
-            AddPoint(CoordsArr, XYZ(0.33, 1, 0.33));   // 2
+            AddPoint(coordsArr, XYZ(0.33, 0.33, 1));   // 0
+            AddPoint(coordsArr, XYZ(1, 0.33, 0.33));   // 1
+            AddPoint(coordsArr, XYZ(0.33, 1, 0.33));   // 2
 
-            AddPoint(CoordsArr, XYZ(1, -0.33, -0.33)); // 3
-            AddPoint(CoordsArr, XYZ(0.33, -1, -0.33)); // 4
-            AddPoint(CoordsArr, XYZ(0.33, -0.33, -1)); // 5
+            AddPoint(coordsArr, XYZ(1, -0.33, -0.33)); // 3
+            AddPoint(coordsArr, XYZ(0.33, -1, -0.33)); // 4
+            AddPoint(coordsArr, XYZ(0.33, -0.33, -1)); // 5
 
-            AddPoint(CoordsArr, XYZ(-0.33, -1, 0.33)); // 6
-            AddPoint(CoordsArr, XYZ(-1, -0.33, 0.33)); // 7
-            AddPoint(CoordsArr, XYZ(-0.33, -0.33, 1)); // 8
+            AddPoint(coordsArr, XYZ(-0.33, -1, 0.33)); // 6
+            AddPoint(coordsArr, XYZ(-1, -0.33, 0.33)); // 7
+            AddPoint(coordsArr, XYZ(-0.33, -0.33, 1)); // 8
 
-            AddPoint(CoordsArr, XYZ(-1, 0.33, -0.33)); // 9
-            AddPoint(CoordsArr, XYZ(-0.33, 1, -0.33)); // 10
-            AddPoint(CoordsArr, XYZ(-0.33, 0.33, -1)); // 11
+            AddPoint(coordsArr, XYZ(-1, 0.33, -0.33)); // 9
+            AddPoint(coordsArr, XYZ(-0.33, 1, -0.33)); // 10
+            AddPoint(coordsArr, XYZ(-0.33, 0.33, -1)); // 11
 
             for (var i = 0; i <= 3; i++)
             {
-                AddPointsBetween(CoordsArr, i * 3 + 0, i * 3 + 1, 10);
-                AddPointsBetween(CoordsArr, i * 3 + 1, i * 3 + 2, 10);
-                AddPointsBetween(CoordsArr, i * 3 + 0, i * 3 + 2, 10);
+                AddPointsBetween(coordsArr, i * 3 + 0, i * 3 + 1, 10);
+                AddPointsBetween(coordsArr, i * 3 + 1, i * 3 + 2, 10);
+                AddPointsBetween(coordsArr, i * 3 + 0, i * 3 + 2, 10);
             }
 
-            AddPointsBetween(CoordsArr, 0, 8, 10);
-            AddPointsBetween(CoordsArr, 1, 3, 10);
-            AddPointsBetween(CoordsArr, 2, 10, 10);
-            AddPointsBetween(CoordsArr, 4, 6, 10);
-            AddPointsBetween(CoordsArr, 7, 9, 10);
-            AddPointsBetween(CoordsArr, 5, 11, 10);
+            AddPointsBetween(coordsArr, 0, 8, 10);
+            AddPointsBetween(coordsArr, 1, 3, 10);
+            AddPointsBetween(coordsArr, 2, 10, 10);
+            AddPointsBetween(coordsArr, 4, 6, 10);
+            AddPointsBetween(coordsArr, 7, 9, 10);
+            AddPointsBetween(coordsArr, 5, 11, 10);
 
-            DupPoint(CoordsArr, 0);
-            DupPoint(CoordsArr, 1);
-            DupPoint(CoordsArr, 3);
-            DupPoint(CoordsArr, 4);
-            DupPoint(CoordsArr, 6);
-            DupPoint(CoordsArr, 7);
-            DupPoint(CoordsArr, 9);
-            DupPoint(CoordsArr, 10);
+            DupPoint(coordsArr, 0);
+            DupPoint(coordsArr, 1);
+            DupPoint(coordsArr, 3);
+            DupPoint(coordsArr, 4);
+            DupPoint(coordsArr, 6);
+            DupPoint(coordsArr, 7);
+            DupPoint(coordsArr, 9);
+            DupPoint(coordsArr, 10);
         }
 
-        private void InitCubeCut(Coords3D[] CoordsArr)
+        private void InitCubeCut(Coords3D[] coordsArr)
         {
-            AddPoint(CoordsArr, XYZ(1, 0.4, 1));   // 0
-            AddPoint(CoordsArr, XYZ(0.4, 1, 1));   // 1
-            AddPoint(CoordsArr, XYZ(-0.4, 1, 1));  // 2
-            AddPoint(CoordsArr, XYZ(-1, 0.4, 1));  // 3
-            AddPoint(CoordsArr, XYZ(-1, -0.4, 1)); // 4
-            AddPoint(CoordsArr, XYZ(-0.4, -1, 1)); // 5
-            AddPoint(CoordsArr, XYZ(0.4, -1, 1));  // 6
-            AddPoint(CoordsArr, XYZ(1, -0.4, 1));  // 7
-            AddPoint(CoordsArr, XYZ(1, 1, 0.4));    // 8
-            AddPoint(CoordsArr, XYZ(1, 1, -0.4));   // 9
-            AddPoint(CoordsArr, XYZ(0.4, 1, -1));   // 10
-            AddPoint(CoordsArr, XYZ(-0.4, 1, -1));  // 11
-            AddPoint(CoordsArr, XYZ(-1, 1, -0.4));  // 12
-            AddPoint(CoordsArr, XYZ(-1, 1, 0.4));   // 13
-            AddPoint(CoordsArr, XYZ(1, -1, 0.4));  // 14
-            AddPoint(CoordsArr, XYZ(1, -1, -0.4)); // 15
-            AddPoint(CoordsArr, XYZ(1, -0.4, -1)); // 16
-            AddPoint(CoordsArr, XYZ(1, 0.4, -1));  // 17
-            AddPoint(CoordsArr, XYZ(-1, 0.4, -1));   // 18
-            AddPoint(CoordsArr, XYZ(-1, -0.4, -1));  // 19
-            AddPoint(CoordsArr, XYZ(-0.4, -1, -1));  // 20
-            AddPoint(CoordsArr, XYZ(0.4, -1, -1));   // 21
-            AddPoint(CoordsArr, XYZ(-1, -1, 0.4));  // 22
-            AddPoint(CoordsArr, XYZ(-1, -1, -0.4)); // 23
+            AddPoint(coordsArr, XYZ(1, 0.4, 1));   // 0
+            AddPoint(coordsArr, XYZ(0.4, 1, 1));   // 1
+            AddPoint(coordsArr, XYZ(-0.4, 1, 1));  // 2
+            AddPoint(coordsArr, XYZ(-1, 0.4, 1));  // 3
+            AddPoint(coordsArr, XYZ(-1, -0.4, 1)); // 4
+            AddPoint(coordsArr, XYZ(-0.4, -1, 1)); // 5
+            AddPoint(coordsArr, XYZ(0.4, -1, 1));  // 6
+            AddPoint(coordsArr, XYZ(1, -0.4, 1));  // 7
+            AddPoint(coordsArr, XYZ(1, 1, 0.4));    // 8
+            AddPoint(coordsArr, XYZ(1, 1, -0.4));   // 9
+            AddPoint(coordsArr, XYZ(0.4, 1, -1));   // 10
+            AddPoint(coordsArr, XYZ(-0.4, 1, -1));  // 11
+            AddPoint(coordsArr, XYZ(-1, 1, -0.4));  // 12
+            AddPoint(coordsArr, XYZ(-1, 1, 0.4));   // 13
+            AddPoint(coordsArr, XYZ(1, -1, 0.4));  // 14
+            AddPoint(coordsArr, XYZ(1, -1, -0.4)); // 15
+            AddPoint(coordsArr, XYZ(1, -0.4, -1)); // 16
+            AddPoint(coordsArr, XYZ(1, 0.4, -1));  // 17
+            AddPoint(coordsArr, XYZ(-1, 0.4, -1));   // 18
+            AddPoint(coordsArr, XYZ(-1, -0.4, -1));  // 19
+            AddPoint(coordsArr, XYZ(-0.4, -1, -1));  // 20
+            AddPoint(coordsArr, XYZ(0.4, -1, -1));   // 21
+            AddPoint(coordsArr, XYZ(-1, -1, 0.4));  // 22
+            AddPoint(coordsArr, XYZ(-1, -1, -0.4)); // 23
 
-            AddPointsBetween(CoordsArr, 0, 1, 4);
-            AddPointsBetween(CoordsArr, 1, 8, 4);
-            AddPointsBetween(CoordsArr, 8, 0, 4);
-            AddPointsBetween(CoordsArr, 2, 3, 4);
-            AddPointsBetween(CoordsArr, 3, 13, 4);
-            AddPointsBetween(CoordsArr, 13, 2, 4);
-            AddPointsBetween(CoordsArr, 4, 5, 4);
-            AddPointsBetween(CoordsArr, 5, 22, 4);
-            AddPointsBetween(CoordsArr, 22, 4, 4);
-            AddPointsBetween(CoordsArr, 6, 7, 4);
-            AddPointsBetween(CoordsArr, 7, 14, 4);
-            AddPointsBetween(CoordsArr, 14, 6, 4);
-            AddPointsBetween(CoordsArr, 11, 12, 4);
-            AddPointsBetween(CoordsArr, 12, 18, 4);
-            AddPointsBetween(CoordsArr, 18, 11, 4);
-            AddPointsBetween(CoordsArr, 19, 23, 4);
-            AddPointsBetween(CoordsArr, 23, 20, 4);
-            AddPointsBetween(CoordsArr, 20, 19, 4);
-            AddPointsBetween(CoordsArr, 15, 16, 4);
-            AddPointsBetween(CoordsArr, 16, 21, 4);
-            AddPointsBetween(CoordsArr, 21, 15, 4);
-            AddPointsBetween(CoordsArr, 9, 17, 4);
-            AddPointsBetween(CoordsArr, 17, 10, 4);
-            AddPointsBetween(CoordsArr, 10, 9, 4);
+            AddPointsBetween(coordsArr, 0, 1, 4);
+            AddPointsBetween(coordsArr, 1, 8, 4);
+            AddPointsBetween(coordsArr, 8, 0, 4);
+            AddPointsBetween(coordsArr, 2, 3, 4);
+            AddPointsBetween(coordsArr, 3, 13, 4);
+            AddPointsBetween(coordsArr, 13, 2, 4);
+            AddPointsBetween(coordsArr, 4, 5, 4);
+            AddPointsBetween(coordsArr, 5, 22, 4);
+            AddPointsBetween(coordsArr, 22, 4, 4);
+            AddPointsBetween(coordsArr, 6, 7, 4);
+            AddPointsBetween(coordsArr, 7, 14, 4);
+            AddPointsBetween(coordsArr, 14, 6, 4);
+            AddPointsBetween(coordsArr, 11, 12, 4);
+            AddPointsBetween(coordsArr, 12, 18, 4);
+            AddPointsBetween(coordsArr, 18, 11, 4);
+            AddPointsBetween(coordsArr, 19, 23, 4);
+            AddPointsBetween(coordsArr, 23, 20, 4);
+            AddPointsBetween(coordsArr, 20, 19, 4);
+            AddPointsBetween(coordsArr, 15, 16, 4);
+            AddPointsBetween(coordsArr, 16, 21, 4);
+            AddPointsBetween(coordsArr, 21, 15, 4);
+            AddPointsBetween(coordsArr, 9, 17, 4);
+            AddPointsBetween(coordsArr, 17, 10, 4);
+            AddPointsBetween(coordsArr, 10, 9, 4);
 
-            AddPointsBetween(CoordsArr, 1, 2, 5);
-            AddPointsBetween(CoordsArr, 5, 6, 5);
-            AddPointsBetween(CoordsArr, 20, 21, 5);
-            AddPointsBetween(CoordsArr, 10, 11, 5);
-            AddPointsBetween(CoordsArr, 3, 4, 5);
-            AddPointsBetween(CoordsArr, 7, 0, 5);
-            AddPointsBetween(CoordsArr, 16, 17, 5);
-            AddPointsBetween(CoordsArr, 18, 19, 5);
-            AddPointsBetween(CoordsArr, 12, 13, 5);
-            AddPointsBetween(CoordsArr, 22, 23, 5);
-            AddPointsBetween(CoordsArr, 14, 15, 5);
-            AddPointsBetween(CoordsArr, 8, 9, 5);
+            AddPointsBetween(coordsArr, 1, 2, 5);
+            AddPointsBetween(coordsArr, 5, 6, 5);
+            AddPointsBetween(coordsArr, 20, 21, 5);
+            AddPointsBetween(coordsArr, 10, 11, 5);
+            AddPointsBetween(coordsArr, 3, 4, 5);
+            AddPointsBetween(coordsArr, 7, 0, 5);
+            AddPointsBetween(coordsArr, 16, 17, 5);
+            AddPointsBetween(coordsArr, 18, 19, 5);
+            AddPointsBetween(coordsArr, 12, 13, 5);
+            AddPointsBetween(coordsArr, 22, 23, 5);
+            AddPointsBetween(coordsArr, 14, 15, 5);
+            AddPointsBetween(coordsArr, 8, 9, 5);
 
             for (var i = 0; i<=19; i++)
-                DupPoint(CoordsArr, i);
+                DupPoint(coordsArr, i);
         }
 
-        private void InitHeadAcke(Coords3D[] CoordsArr)
+        private void InitHeadAcke(Coords3D[] coordsArr)
         {
-            AddPoint(CoordsArr, XYZ(1, 0.4, 0.2));    // 0
-            AddPoint(CoordsArr, XYZ(-1, 0.4, 0.2));   // 1
-            AddPoint(CoordsArr, XYZ(-1, -0.4, 0.2));  // 2
-            AddPoint(CoordsArr, XYZ(1, -0.4, 0.2));   // 3
-            AddPoint(CoordsArr, XYZ(1, 0.4, -0.2));   // 4
-            AddPoint(CoordsArr, XYZ(-1, 0.4, -0.2));  // 5
-            AddPoint(CoordsArr, XYZ(-1, -0.4, -0.2)); // 6
-            AddPoint(CoordsArr, XYZ(1, -0.4, -0.2));  // 7
-            AddPoint(CoordsArr, XYZ(0.4, 0.2, 1));     // 8
-            AddPoint(CoordsArr, XYZ(0.4, 0.2, -1));    // 9
-            AddPoint(CoordsArr, XYZ(-0.4, 0.2, -1));   // 10
-            AddPoint(CoordsArr, XYZ(-0.4, 0.2, 1));    // 11
-            AddPoint(CoordsArr, XYZ(0.4, -0.2, 1));    // 12
-            AddPoint(CoordsArr, XYZ(0.4, -0.2, -1));   // 13
-            AddPoint(CoordsArr, XYZ(-0.4, -0.2, -1));  // 14
-            AddPoint(CoordsArr, XYZ(-0.4, -0.2, 1));   // 15
-            AddPoint(CoordsArr, XYZ(0.2, 1, 0.4));    // 16
-            AddPoint(CoordsArr, XYZ(0.2, -1, 0.4));   // 17
-            AddPoint(CoordsArr, XYZ(0.2, -1, -0.4));  // 18
-            AddPoint(CoordsArr, XYZ(0.2, 1, -0.4));   // 19
-            AddPoint(CoordsArr, XYZ(-0.2, 1, 0.4));   // 20
-            AddPoint(CoordsArr, XYZ(-0.2, -1, 0.4));  // 21
-            AddPoint(CoordsArr, XYZ(-0.2, -1, -0.4)); // 22
-            AddPoint(CoordsArr, XYZ(-0.2, 1, -0.4));  // 23
+            AddPoint(coordsArr, XYZ(1, 0.4, 0.2));    // 0
+            AddPoint(coordsArr, XYZ(-1, 0.4, 0.2));   // 1
+            AddPoint(coordsArr, XYZ(-1, -0.4, 0.2));  // 2
+            AddPoint(coordsArr, XYZ(1, -0.4, 0.2));   // 3
+            AddPoint(coordsArr, XYZ(1, 0.4, -0.2));   // 4
+            AddPoint(coordsArr, XYZ(-1, 0.4, -0.2));  // 5
+            AddPoint(coordsArr, XYZ(-1, -0.4, -0.2)); // 6
+            AddPoint(coordsArr, XYZ(1, -0.4, -0.2));  // 7
+            AddPoint(coordsArr, XYZ(0.4, 0.2, 1));     // 8
+            AddPoint(coordsArr, XYZ(0.4, 0.2, -1));    // 9
+            AddPoint(coordsArr, XYZ(-0.4, 0.2, -1));   // 10
+            AddPoint(coordsArr, XYZ(-0.4, 0.2, 1));    // 11
+            AddPoint(coordsArr, XYZ(0.4, -0.2, 1));    // 12
+            AddPoint(coordsArr, XYZ(0.4, -0.2, -1));   // 13
+            AddPoint(coordsArr, XYZ(-0.4, -0.2, -1));  // 14
+            AddPoint(coordsArr, XYZ(-0.4, -0.2, 1));   // 15
+            AddPoint(coordsArr, XYZ(0.2, 1, 0.4));    // 16
+            AddPoint(coordsArr, XYZ(0.2, -1, 0.4));   // 17
+            AddPoint(coordsArr, XYZ(0.2, -1, -0.4));  // 18
+            AddPoint(coordsArr, XYZ(0.2, 1, -0.4));   // 19
+            AddPoint(coordsArr, XYZ(-0.2, 1, 0.4));   // 20
+            AddPoint(coordsArr, XYZ(-0.2, -1, 0.4));  // 21
+            AddPoint(coordsArr, XYZ(-0.2, -1, -0.4)); // 22
+            AddPoint(coordsArr, XYZ(-0.2, 1, -0.4));  // 23
 
             for (var i = 0; i <= 5; i++)
             {
-                AddPointsBetween(CoordsArr, 4 * i + 0, 4 * i + 1, 8);
-                AddPointsBetween(CoordsArr, 4 * i + 1, 4 * i + 2, 4);
-                AddPointsBetween(CoordsArr, 4 * i + 2, 4 * i + 3, 8);
-                AddPointsBetween(CoordsArr, 4 * i + 3, 4 * i + 0, 4);
+                AddPointsBetween(coordsArr, 4 * i + 0, 4 * i + 1, 8);
+                AddPointsBetween(coordsArr, 4 * i + 1, 4 * i + 2, 4);
+                AddPointsBetween(coordsArr, 4 * i + 2, 4 * i + 3, 8);
+                AddPointsBetween(coordsArr, 4 * i + 3, 4 * i + 0, 4);
             }
             for (var i = 0; i <= 2; i++)
             {
-                AddPointsBetween(CoordsArr, 8 * i + 0, 8 * i + 4, 2);
-                AddPointsBetween(CoordsArr, 8 * i + 1, 8 * i + 5, 2);
-                AddPointsBetween(CoordsArr, 8 * i + 2, 8 * i + 6, 2);
-                AddPointsBetween(CoordsArr, 8 * i + 3, 8 * i + 7, 2);
+                AddPointsBetween(coordsArr, 8 * i + 0, 8 * i + 4, 2);
+                AddPointsBetween(coordsArr, 8 * i + 1, 8 * i + 5, 2);
+                AddPointsBetween(coordsArr, 8 * i + 2, 8 * i + 6, 2);
+                AddPointsBetween(coordsArr, 8 * i + 3, 8 * i + 7, 2);
             }
             for (var i = 0; i <= 7; i++)
-                DupPoint(CoordsArr, i);
+                DupPoint(coordsArr, i);
         }
 
-        private void InitSphere1(Coords3D[] CoordsArr)
+        private void InitSphere1(Coords3D[] coordsArr)
         {
             for (var nang = -9; nang <= 10; nang++)
             {
@@ -570,12 +565,12 @@ namespace MorphClocks
                 for (var nokr = 0; nokr <= 9; nokr++)
                 {
                     var ango = (double)nokr / 10 * Math.PI * 2;
-                    AddPoint(CoordsArr, XYZ(Math.Sin(ango) * Math.Sqrt(1 - z * z), Math.Cos(ango) * Math.Sqrt(1 - z * z), z));
+                    AddPoint(coordsArr, XYZ(Math.Sin(ango) * Math.Sqrt(1 - z * z), Math.Cos(ango) * Math.Sqrt(1 - z * z), z));
                 }
             }
         }
 
-        private void InitSphere2(Coords3D[] CoordsArr)
+        private void InitSphere2(Coords3D[] coordsArr)
         {
             for (var nang = -4; nang <= 5; nang++)
             {
@@ -584,12 +579,12 @@ namespace MorphClocks
                 for (var nokr = 0; nokr <= 19; nokr++)
                 {
                     var ango = (double)nokr / 20 * Math.PI * 2;
-                    AddPoint(CoordsArr, XYZ(Math.Sin(ango) * Math.Sqrt(1 - z * z), Math.Cos(ango) * Math.Sqrt(1 - z * z), z));
+                    AddPoint(coordsArr, XYZ(Math.Sin(ango) * Math.Sqrt(1 - z * z), Math.Cos(ango) * Math.Sqrt(1 - z * z), z));
                 }
             }
         }
 
-        private void InitEgg(Coords3D[] CoordsArr) // Яйцо / Egg
+        private void InitEgg(Coords3D[] coordsArr) // Egg
         {
             for (var nsl = -10; nsl <= 9; nsl++)
             {
@@ -610,12 +605,12 @@ namespace MorphClocks
                 for (var nokr = 0; nokr <= 9; nokr++)
                 {
                     var ango = (double)nokr / 10 * Math.PI * 2;
-                    AddPoint(CoordsArr, XYZ(Math.Sin(ango) * R / 1.5, Math.Cos(ango) * R / 1.5, z));
+                    AddPoint(coordsArr, XYZ(Math.Sin(ango) * R / 1.5, Math.Cos(ango) * R / 1.5, z));
                 }
             }
         }
 
-        private void InitTor(Coords3D[] CoordsArr) // тор / torus
+        private void InitTor(Coords3D[] coordsArr) // torus
         {
             for (var n = 0; n <= (PointsCount / 10) - 1; n++)
             {
@@ -626,12 +621,12 @@ namespace MorphClocks
                     var z = 0.33 * Math.Sin((double) k / 10 * 2 * Math.PI);
                     var x = r * Math.Cos(ang);
                     var y = r * Math.Sin(ang);
-                    AddPoint(CoordsArr, XYZ(x, y, z));
+                    AddPoint(coordsArr, XYZ(x, y, z));
                 }
             }
         }
 
-        private void InitSpiral(Coords3D[] CoordsArr) // кривая 2 / curve 2
+        private void InitSpiral(Coords3D[] coordsArr) // curve 2
         {
             for (var n = 0; n <= PointsCount - 1; n++)
             {
@@ -641,19 +636,19 @@ namespace MorphClocks
                 var r = 1 + 0.33 * Math.Cos(ang);
                 var x = r * Math.Cos(angm);
                 var y = r * Math.Sin(angm);
-                AddPoint(CoordsArr, XYZ(x, y, z));
+                AddPoint(coordsArr, XYZ(x, y, z));
             }
         }
 
-        private void UnSort(Coords3D[] CoordsArr)
+        private void UnSort(Coords3D[] coordsArr)
         {
             for (var i = 1; i <= 1024; i++)
             {
                 var k = _random.Next(PointsCount);
                 var l = _random.Next(PointsCount);
-                var temp = CoordsArr[k];
-                CoordsArr[k] = CoordsArr[l];
-                CoordsArr[l] = temp;
+                var temp = coordsArr[k];
+                coordsArr[k] = coordsArr[l];
+                coordsArr[l] = temp;
             }
         }
 
@@ -732,7 +727,7 @@ namespace MorphClocks
                     throw new ArgumentOutOfRangeException();
             }
             if (UnSortPoints)
-                UnSort(coordsArr); // перемешать точки / mix points
+                UnSort(coordsArr); //mix points
         }
 
         #endregion FIGURES INITIALIZATION
@@ -828,23 +823,23 @@ namespace MorphClocks
             _coefX = (double)rect.Right / 8;
             _coefY = (double)rect.Bottom / 6;
 
-            const int MinTimeDelta = 10;
-            const int MaxTimeDelta = 200;
+            const int minTimeDelta = 10;
+            const int maxTimeDelta = 200;
 
-            var TimeDelta = Environment.TickCount - LastTickCount;
-            if (TimeDelta > MaxTimeDelta)
-                TimeDelta = MaxTimeDelta;
-            if (TimeDelta<MinTimeDelta)
-                TimeDelta = MinTimeDelta;
+            var timeDelta = Environment.TickCount - LastTickCount;
+            if (timeDelta > maxTimeDelta)
+                timeDelta = maxTimeDelta;
+            if (timeDelta<minTimeDelta)
+                timeDelta = minTimeDelta;
             LastTickCount = Environment.TickCount;
 
             if (Wait > 0)
-                Wait = Wait - TimeDelta;
+                Wait = Wait - timeDelta;
             else
             {
                 if (DoUp)
                 {
-                    Percent = Percent + (double)TimeDelta / 10;
+                    Percent = Percent + (double)timeDelta / 10;
                     if (Percent >= 100)
                     {
                         Percent = 100;
@@ -855,7 +850,7 @@ namespace MorphClocks
                 }
                 else
                 {
-                    Percent = Percent - (double)TimeDelta / 10;
+                    Percent = Percent - (double)timeDelta / 10;
                     if (Percent <= 0)
                     {
                         Percent = 0;
@@ -867,11 +862,11 @@ namespace MorphClocks
                 CalcPos();
             }
 
-            _xa = _xa + TimeDelta * Math.PI * VectAX / 1000;
-            _ya = _ya + TimeDelta * Math.PI * VectAY / 1000;
-            _za = _za - TimeDelta * Math.PI * VectAZ / 1000;
+            _xa = _xa + timeDelta * Math.PI * VectAX / 1000;
+            _ya = _ya + timeDelta * Math.PI * VectAY / 1000;
+            _za = _za - timeDelta * Math.PI * VectAZ / 1000;
 
-            _scx = _scx + VectX * TimeDelta;
+            _scx = _scx + VectX * timeDelta;
             if (_scx > 3.5 - _scz / 2.5 || (_scx > 2.75 && !Move3D))
             {
                 VectX = -Math.Abs(VectX);
@@ -883,7 +878,7 @@ namespace MorphClocks
                 VectAY = Math.Abs(_random.NextDouble() / 3 + 0.25);
             }
 
-            _scy = _scy+VectY* TimeDelta;
+            _scy = _scy+VectY* timeDelta;
             if(_scy>3-_scz/3 || _scy>1.8 && !Move3D)
             {
                 VectY = -Math.Abs(VectY);
@@ -897,7 +892,7 @@ namespace MorphClocks
 
             if (Move3D)
             {
-                _scz = _scz+VectZ* TimeDelta;
+                _scz = _scz+VectZ* timeDelta;
                 if (_scz > 4)
                 {
                     VectZ = -Math.Abs(VectZ);

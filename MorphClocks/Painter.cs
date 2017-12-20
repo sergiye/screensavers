@@ -6,6 +6,7 @@ namespace MorphClocks
 {
     public class Painter
     {
+        private readonly bool _previewMode;
         private readonly bool _modernFont;
         private readonly bool _drawCircle;
         private readonly bool _backTimer;
@@ -16,6 +17,7 @@ namespace MorphClocks
 
         public Painter(bool modernFont, Color textColor, Color linesColor, bool backTimer = false, byte workEnd = 0, bool drawCircle = false, bool previewMode = false)
         {
+            _previewMode = previewMode;
             _modernFont = modernFont;
             _textColor = textColor;
             _linesColor = linesColor;
@@ -25,7 +27,7 @@ namespace MorphClocks
 
             _shapes = new List<Shape>();
             for (var i = 0; i < 1; i++)
-                _shapes.Add(new Shape(previewMode, true, false));
+                _shapes.Add(new Shape(_previewMode, true, false));
         }
 
         public void UpdateDisplay(Graphics graphics, Rectangle rect)
@@ -78,8 +80,8 @@ namespace MorphClocks
                 using (var textBrush = new SolidBrush(_textColor))
                 {
                     using (var textFont = _modernFont
-                        ? new Font("Vivaldi", size, FontStyle.Bold)
-                        : new Font(FontFamily.GenericSerif, size, FontStyle.Bold))
+                        ? new Font("Vivaldi", size, _previewMode ? FontStyle.Regular : FontStyle.Bold)
+                        : new Font(FontFamily.GenericSerif, size, _previewMode ? FontStyle.Regular : FontStyle.Bold))
                     {
                         //var textFont = _modernFont ? new Font("Segoe Script", size, FontStyle.Bold) : new Font(FontFamily.GenericSerif, size, FontStyle.Bold);
 
@@ -128,14 +130,14 @@ namespace MorphClocks
                 }
 
                 //Arrows paint
-                linesPen.Width = 7;
+                linesPen.Width = _previewMode ? 3 : 7;
                 graphics.DrawEllipse(linesPen, x-3, y-3, 6, 6);
                 //hour
                 graphics.DrawLine(linesPen, new PointF(x, y),
                     new PointF((float)(x + (x - aLeft) / 2.5 * Math.Sin(((float)nowTime.Minute / 60 + nowTime.Hour) * 30 * Math.PI / 180)),
                                (float)(y - (y - aTop) / 2.5 * Math.Cos(((float)nowTime.Minute / 60 + nowTime.Hour) * 30 * Math.PI / 180))));
                 //minute
-                linesPen.Width = 4;
+                linesPen.Width = _previewMode ? 2 : 4;
                 graphics.DrawLine(linesPen, new PointF(x, y),
                     new PointF((float)(x + (x - aLeft) / 1.5 * Math.Sin(((float)nowTime.Second / 60 + nowTime.Minute) * 6 * Math.PI / 180)),
                         (float)(y - (y - aTop) / 1.5 * Math.Cos(((float)nowTime.Second / 60 + nowTime.Minute) * 6 * Math.PI / 180))));

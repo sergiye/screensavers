@@ -20,10 +20,11 @@ namespace MorphClocks
                 {
                     case "/c":
                         //inform the user no options can be set in this screen saver
-                        MessageBox.Show("This screen saver has no options that you can set",
-                            "Information",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
+                        Application.Run(new SettingsForm());
+//                        MessageBox.Show("This screen saver has no options that you can set",
+//                            "Information",
+//                            MessageBoxButtons.OK,
+//                            MessageBoxIcon.Information);
                         return;
                     case "/p":
                         //show the screen saver preview
@@ -39,8 +40,8 @@ namespace MorphClocks
         //will show the screen saver
         static void ShowScreensaver()
         {
-            var screensaver = new MainForm(Screen.AllScreens[1].Bounds);
-            //var screensaver = new MainForm(Screen.PrimaryScreen.Bounds);
+            //var screensaver = new MainForm(Screen.AllScreens[1].Bounds);
+            var screensaver = new MainForm(Screen.PrimaryScreen.Bounds);
             screensaver.Show();
 
             //loops through all the computer's screens (monitors)
