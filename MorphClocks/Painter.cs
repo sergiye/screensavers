@@ -51,7 +51,7 @@ namespace MorphClocks
             for (var i = 0; i < 1; i++)
                 _shapes.Add(new Shape(_previewMode, AppSettings.Instance.Move3D, AppSettings.Instance.MixPoint));
 
-            if (!_previewMode)
+            if (!_previewMode && _colorRandomizer)
             {
                 _flakesCount = _random.Next(25, 100);
                 PrepareSnowFlakes(rect);
@@ -170,7 +170,7 @@ namespace MorphClocks
                 shape.DrawScreen(graphics, rect);
             }
             // drawing clocks and figure
-            if (!_previewMode)
+            if (!_previewMode && _colorRandomizer)
                 DrawFlakes(graphics, rect);
             DrawTimer(graphics, rect, 0, 0, nowTime);
         }
