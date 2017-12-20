@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Text;
 
 namespace MorphClocks
 {
     public class Painter
     {
         private readonly bool _previewMode;
-        private readonly bool _modernFont;
+        private readonly string _fontName;
         private readonly bool _drawCircle;
         private readonly bool _backTimer;
-        private readonly byte _workEnd;
+        private readonly int _workEnd;
         private readonly Color _textColor;
         private readonly Color _linesColor;
         private readonly List<Shape> _shapes;
 
-        public Painter(bool modernFont, Color textColor, Color linesColor, bool backTimer = false, byte workEnd = 0, bool drawCircle = false, bool previewMode = false)
+        public Painter(string fontName, Color textColor, Color linesColor, bool backTimer = false, int workEnd = 0, bool drawCircle = false, bool previewMode = false)
         {
             _previewMode = previewMode;
-            _modernFont = modernFont;
+            _fontName = fontName;
             _textColor = textColor;
             _linesColor = linesColor;
             _backTimer = backTimer;
@@ -27,7 +28,7 @@ namespace MorphClocks
 
             _shapes = new List<Shape>();
             for (var i = 0; i < 1; i++)
-                _shapes.Add(new Shape(_previewMode, true, false));
+                _shapes.Add(new Shape(_previewMode, AppSettings.Instance.Move3D, AppSettings.Instance.MixPoint));
         }
 
         public void UpdateDisplay(Graphics graphics, Rectangle rect)
@@ -47,7 +48,7 @@ namespace MorphClocks
             DrawTimer(graphics, rect, 0, 0, nowTime);
         }
 
-        private static string TimeToStr(DateTime aTime, bool backTimer, byte workEnd)
+        private static string TimeToStr(DateTime aTime, bool backTimer, int workEnd)
         {
             if (!backTimer) return aTime.ToString("HH:mm:ss");
             var secsNow = Math.Abs(aTime.Hour * 3600 + aTime.Minute * 60 + aTime.Second - workEnd * 3600);
@@ -57,6 +58,18 @@ namespace MorphClocks
             secsNow = secsNow - hh * 3600;
             var mm = secsNow / 60;
             return String.Format("{0}:{1}:{2:00}", hh, mm, ss);
+        }
+
+        private static bool CheckFontExists(string fontName)
+        {
+            var fontsCollection = new InstalledFontCollection();
+            foreach (var fontFamiliy in fontsCollection.Families)
+            {
+                if (fontFamiliy.Name == fontName) return true;
+            }
+            return false;
+//            using (Font fontTester = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
+//                return fontTester.Name == fontName;
         }
 
         public void DrawTimer(Graphics graphics, Rectangle r, long aLeft, long aTop, DateTime nowTime)
@@ -79,8 +92,8 @@ namespace MorphClocks
                 //Label and Timer paint
                 using (var textBrush = new SolidBrush(_textColor))
                 {
-                    using (var textFont = _modernFont
-                        ? new Font("Vivaldi", size, _previewMode ? FontStyle.Regular : FontStyle.Bold)
+                    using (var textFont = CheckFontExists(_fontName)
+                        ? new Font(_fontName, size, _previewMode ? FontStyle.Regular : FontStyle.Bold)
                         : new Font(FontFamily.GenericSerif, size, _previewMode ? FontStyle.Regular : FontStyle.Bold))
                     {
                         //var textFont = _modernFont ? new Font("Segoe Script", size, FontStyle.Bold) : new Font(FontFamily.GenericSerif, size, FontStyle.Bold);
