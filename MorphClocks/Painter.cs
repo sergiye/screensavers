@@ -179,13 +179,13 @@ namespace MorphClocks
         private static string TimeToStr(DateTime aTime, bool backTimer, int workEnd)
         {
             if (!backTimer) return aTime.ToString("HH:mm:ss");
-            var secsNow = Math.Abs(aTime.Hour * 3600 + aTime.Minute * 60 + aTime.Second - workEnd * 3600);
-            var ss = secsNow % 60;
-            secsNow = secsNow - ss;
-            var hh = secsNow / 3600;
-            secsNow = secsNow - hh * 3600;
-            var mm = secsNow / 60;
-            return String.Format("{0}:{1}:{2:00}", hh, mm, ss);
+            var secsTotal = Math.Abs(aTime.Hour * 3600 + aTime.Minute * 60 + aTime.Second - workEnd * 3600);
+            var ss = secsTotal % 60;
+            secsTotal = secsTotal - ss;
+            var hh = secsTotal / 3600;
+            secsTotal = secsTotal - hh * 3600;
+            var mm = secsTotal / 60;
+            return String.Format("{0:00}:{1:00}:{2:00}", hh, mm, ss);
         }
 
         private static bool CheckFontExists(string fontName)
