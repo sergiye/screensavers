@@ -809,7 +809,7 @@ namespace MorphClocks
         private Color GetColor(Coords3D coords3D)
         {
             var len = Math.Sqrt(Math.Pow(coords3D.X - 0, 2) + Math.Pow(coords3D.Y - 0, 2) + Math.Pow(coords3D.Z - ColorZ0, 2));
-            var gr = (int) Math.Abs(Math.Truncate((BackColor.ToArgb() & 0xFFFFFF) - len * FogCoef)); //todo: check!
+            var gr = (int) Math.Abs((BackColor.ToArgb() & 0xFFFFFF) - len * FogCoef) & 0xFF;
             //  Gr := Trunc(255-Len*FogCoef);
             //  If Gr<0 then Gr := 0;
             return Color.FromArgb(gr, gr, gr);    // Translation RGB to the hue of gray
@@ -879,7 +879,7 @@ namespace MorphClocks
                 VectAY = (float) Math.Abs(_random.NextDouble() / 3 + 0.25);
             }
 
-            _scy = _scy+VectY* timeDelta;
+            _scy = _scy + VectY * timeDelta;
             if(_scy>3-_scz/3 || _scy>1.8 && !Move3D)
             {
                 VectY = -Math.Abs(VectY);
@@ -893,7 +893,7 @@ namespace MorphClocks
 
             if (Move3D)
             {
-                _scz = _scz+VectZ* timeDelta;
+                _scz = _scz + VectZ * timeDelta;
                 if (_scz > 4)
                 {
                     VectZ = -Math.Abs(VectZ);

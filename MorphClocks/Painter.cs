@@ -70,16 +70,18 @@ namespace MorphClocks
             }
             return map;
         }
-
         private readonly List<Color> _colors = GetStaticPropertyBag();
-
-        static DateTime _cChangedTime = DateTime.Now;
-        static int _cIdx = 1;
+        private static DateTime _cChangedTime = DateTime.Now;
+        private static int _cIdx = 1;
         public Color ColorRandomizer()
         {
             if (_cChangedTime.AddSeconds(3) < DateTime.Now)
             {
-                _cIdx = _random.Next(1, _colors.Count-1);
+                do
+                {
+                    _cIdx = _random.Next(1, _colors.Count - 1);
+                }
+                while (_colors[_cIdx].GetBrightness() < 0.1);
                 _cChangedTime = DateTime.Now;
             }
             return _colors[_cIdx];
@@ -160,8 +162,7 @@ namespace MorphClocks
                 TextColor = ColorRandomizer();
             //setting the color palette
             var nowTime = DateTime.Now;
-            var workEnd = 0;
-            var backColor = workEnd > 0 && nowTime.Hour >= workEnd ? Color.DarkRed : Color.Black;
+            var backColor = _workEnd > 0 && nowTime.Hour >= _workEnd ? Color.DarkRed : Color.Black;
             using (var backBrush = new SolidBrush(backColor))
                 graphics.FillRectangle(backBrush, rect);
             foreach (var shape in _shapes)

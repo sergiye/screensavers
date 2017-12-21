@@ -85,17 +85,14 @@ namespace MorphClocks
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
         {
-            //create the bitmap and graphics
             var r = ClientRectangle;
             using (var bitmap = new Bitmap(r.Width, r.Height))
-            //var bitmap = new Bitmap(r.Width, r.Height);
             {
                 //using (var graphics = this.CreateGraphics())
                 using (var graphics = Graphics.FromImage(bitmap))
                 {
                     painter.UpdateDisplay(graphics, r);
                     e.Graphics.DrawImageUnscaled(bitmap, 0, 0, bitmap.Width, bitmap.Height);
-                    //BackgroundImage = bitmap;
                 }
             }
         }
@@ -106,18 +103,14 @@ namespace MorphClocks
 
         private void MainForm_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!IsPreviewMode) //disable exit functions for preview
-            {
-                Application.Exit();
-            }
+            if (IsPreviewMode) return;
+            Application.Exit();
         }
 
         private void MainForm_Click(object sender, EventArgs e)
         {
-            if (!IsPreviewMode) //disable exit functions for preview
-            {
-                Application.Exit();
-            }
+            if (IsPreviewMode) return;
+            Application.Exit();
         }
 
         //start off OriginalLoction with an X and Y of int.MaxValue, because
@@ -127,18 +120,16 @@ namespace MorphClocks
 
         private void MainForm_MouseMove(object sender, MouseEventArgs e)
         {
-            if (!IsPreviewMode) //disable exit functions for preview
+            if (IsPreviewMode) return;
+            //see if originallocat5ion has been set
+            if (OriginalLocation.X == int.MaxValue & OriginalLocation.Y == int.MaxValue)
             {
-                //see if originallocat5ion has been set
-                if (OriginalLocation.X == int.MaxValue & OriginalLocation.Y == int.MaxValue)
-                {
-                    OriginalLocation = e.Location;
-                }
-                //see if the mouse has moved more than 20 pixels in any direction. If it has, close the application.
-                if (Math.Abs(e.X - OriginalLocation.X) > 20 | Math.Abs(e.Y - OriginalLocation.Y) > 20)
-                {
-                    Application.Exit();
-                }
+                OriginalLocation = e.Location;
+            }
+            //see if the mouse has moved more than 20 pixels in any direction. If it has, close the application.
+            if (Math.Abs(e.X - OriginalLocation.X) > 20 | Math.Abs(e.Y - OriginalLocation.Y) > 20)
+            {
+                Application.Exit();
             }
         }
 
