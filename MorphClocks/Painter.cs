@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Reflection;
 
@@ -12,8 +13,9 @@ namespace MorphClocks
         {
             public float X { get; set; }
             public float Y { get; set; }
-            public float R { get; set; }
-            public float D { get; set; }
+            public int R { get; set; } //radius
+            public int Depth { get; set; } //painting depth
+            public float D { get; set; } //density
         }
 
         private readonly bool _previewMode;
@@ -95,9 +97,73 @@ namespace MorphClocks
                                {
                                    X = (float)(_random.NextDouble() * rect.Width), //x-coordinate
                                    Y = (float)(_random.NextDouble() * rect.Height), //y-coordinate
-                                   R = (float)(_random.NextDouble() * 4 + 1), //radius
+                                   R = _random.Next(1, 15), //radius
+                                   Depth = _random.Next(3, 5),
                                    D = (float)(_random.NextDouble() * _flakesCount) //density
                                });
+            }
+        }
+
+        private static void DrawSnowflake(Graphics gr, Snowflake flake)
+        {
+            var Initiator = new List<PointF>();
+            float height = 0.75f * flake.R;
+            var width = (float)(height / Math.Sqrt(3.0) * 2);
+            var y3 = flake.Y + height;
+            var y1 = y3 - height;
+            var x3 = flake.X + (float)flake.R / 2;
+            var x1 = flake.X;
+            var x2 = x1 + width;
+            Initiator.Add(new PointF(x1, y1));
+            Initiator.Add(new PointF(x2, y1));
+            Initiator.Add(new PointF(x3, y3));
+            Initiator.Add(new PointF(x1, y1));
+
+            // Draw the snowflake.
+            for (var i = 1; i < Initiator.Count; i++)
+            {
+                var p1 = Initiator[i - 1];
+                var p2 = Initiator[i];
+
+                var dx = p2.X - p1.X;
+                var dy = p2.Y - p1.Y;
+                var length = (float)Math.Sqrt(dx * dx + dy * dy);
+                var theta = (float)Math.Atan2(dy, dx);
+                DrawSnowflakeEdge(gr, flake.Depth, ref p1, theta, length);
+            }
+        }
+
+        // Recursively draw a snowflake edge starting at
+        // (x1, y1) in direction theta and distance dist.
+        // Leave the coordinates of the endpoint in
+        // (x1, y1).
+        private static void DrawSnowflakeEdge(Graphics gr, int depth,
+            ref PointF p1, float theta, float dist)
+        {
+            const float ScaleFactor = 1 / 3f; // Make subsegments 1/3 size.
+            var GeneratorDTheta = new List<float>();
+            var pi_over_3 = (float)(Math.PI / 3f);
+            GeneratorDTheta.Add(0);                 // Draw in the original direction.
+            GeneratorDTheta.Add(-pi_over_3);        // Turn -60 degrees.
+            GeneratorDTheta.Add(2 * pi_over_3);     // Turn 120 degrees.
+            GeneratorDTheta.Add(-pi_over_3);        // Turn -60 degrees.
+
+            if (depth == 0)
+            {
+                var p2 = new PointF(
+                    (float)(p1.X + dist * Math.Cos(theta)),
+                    (float)(p1.Y + dist * Math.Sin(theta)));
+                gr.DrawLine(Pens.Blue, p1, p2);
+                p1 = p2;
+                return;
+            }
+
+            // Recursively draw the edge.
+            dist *= ScaleFactor;
+            for (var i = 0; i < GeneratorDTheta.Count; i++)
+            {
+                theta += GeneratorDTheta[i];
+                DrawSnowflakeEdge(gr, depth - 1, ref p1, theta, dist);
             }
         }
 
@@ -106,9 +172,12 @@ namespace MorphClocks
         {
             foreach (var p in _particles)
             {
-                using (var pen = new Pen(Color.AliceBlue, 3))
+                //DrawSnowflake(graphics, p);
+
+                using (var brush = new HatchBrush(HatchStyle.LargeConfetti, Color.AliceBlue))
+//                using (var brush = new SolidBrush(Color.AliceBlue))
                 {
-                    graphics.DrawEllipse(pen, p.X, p.Y, p.R, p.R);
+                    graphics.FillEllipse(brush, p.X, p.Y, p.R, p.R);
                 }
             }
             UpdateFlakes(rect);
@@ -127,7 +196,7 @@ namespace MorphClocks
                 //We will add 1 to the cos function to prevent negative values which will lead flakes to move upwards
                 //Every particle has its own density which can be used to make the downward movement different for each flake
                 //Lets make it more random by adding in the radius
-                p.Y += (float)(Math.Cos(_snowFlakeAngle + p.D) + 1 + p.R / 2);
+                p.Y += (float)(Math.Cos(_snowFlakeAngle + p.D) + 1 + (float)p.R / 2);
                 p.X += (float)Math.Sin(_snowFlakeAngle) * 2;
 
                 //Sending flakes back from the top when it exits
