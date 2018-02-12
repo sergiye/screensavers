@@ -75,12 +75,12 @@ namespace MorphClocks
 
         #endregion Config
 
-        public Shape(bool preview, bool move3d, bool mixPoints)
+        public Shape(bool preview, bool move3d, bool mixPoints, Color backColor)
         {
             _preview = preview;
             _random = new Random();
 
-            BackColor = Color.Black;
+            BackColor = backColor;
             UnSortPoints = mixPoints;
             Move3D = move3d;
             GetRandomShape(_pCoords1);

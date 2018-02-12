@@ -75,7 +75,10 @@ namespace MorphClocks
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.TextColor, AppSettings.Instance.LineColor, AppSettings.Instance.BackTimer, AppSettings.Instance.WorkEnd, AppSettings.Instance.DrawCircle, IsPreviewMode);
+            BackColor = AppSettings.Instance.BackColor;
+            painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.TextColor, 
+                AppSettings.Instance.BackColor, AppSettings.Instance.LineColor, AppSettings.Instance.BackTimer, 
+                AppSettings.Instance.WorkEnd, AppSettings.Instance.DrawCircle, IsPreviewMode);
             //if (!IsPreviewMode) //we don't want all those effects for just a preview
             {
                 Refresh();

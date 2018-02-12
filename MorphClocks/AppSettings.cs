@@ -18,6 +18,7 @@ namespace MorphClocks
         {
             FontName = "Vivaldi";
             TextColor = Color.CornflowerBlue;
+            BackColor = Color.Black;
             LineColor = Color.White;
         }
 
@@ -28,6 +29,14 @@ namespace MorphClocks
         {
             get { return TextColor.ToArgb(); }
             set { TextColor = Color.FromArgb(value); }
+        }
+
+        [XmlIgnore] public Color BackColor;
+        [XmlAttribute]
+        public int BackColorValue
+        {
+            get { return BackColor.ToArgb(); }
+            set { BackColor = Color.FromArgb(value); }
         }
 
         [XmlIgnore] public Color LineColor;

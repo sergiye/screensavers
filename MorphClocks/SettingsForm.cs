@@ -11,6 +11,7 @@ namespace MorphClocks
 
             btnFont.Text = AppSettings.Instance.FontName;
             btnTextColor.BackColor = AppSettings.Instance.TextColor;
+            btnBackColor.BackColor = AppSettings.Instance.BackColor;
             btnLinesColor.BackColor = AppSettings.Instance.LineColor;
 
             numBackTimer.Value = AppSettings.Instance.WorkEnd;
@@ -42,6 +43,14 @@ namespace MorphClocks
             if (dlg.ShowDialog() != DialogResult.OK) return;
             btnTextColor.BackColor = dlg.Color;
             AppSettings.Instance.TextColor = dlg.Color;
+        }
+
+        private void btnBackColor_Click(object sender, EventArgs e)
+        {
+            var dlg = new ColorDialog {Color = AppSettings.Instance.BackColor};
+            if (dlg.ShowDialog() != DialogResult.OK) return;
+            btnBackColor.BackColor = dlg.Color;
+            AppSettings.Instance.BackColor = dlg.Color;
         }
 
         private void btnLinesColor_Click(object sender, EventArgs e)

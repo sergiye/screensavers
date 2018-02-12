@@ -29,12 +29,13 @@ namespace MorphClocks
 
         private readonly bool _colorRandomizer;
         public Color TextColor { get; set; }
+        public Color BackColor { get; set; }
 
         //snowflake particles
         private readonly int _flakesCount; //max particles
         private readonly List<Snowflake> _particles = new List<Snowflake>();
 
-        public Painter(Rectangle rect, string fontName, Color textColor, Color linesColor, bool backTimer = false, int workEnd = 0, 
+        public Painter(Rectangle rect, string fontName, Color textColor, Color backColor, Color linesColor, bool backTimer = false, int workEnd = 0, 
             bool drawCircle = false, bool previewMode = false)
         {
             _random = new Random();
@@ -42,8 +43,12 @@ namespace MorphClocks
             _previewMode = previewMode;
             _fontName = fontName;
             TextColor = textColor;
-            if (textColor == Color.Black || textColor.GetBrightness() < 0.1)
+            BackColor = backColor;
+            //if (TextColor.Equals(BackColor) || TextColor.GetBrightness() < 0.1)
+            if (TextColor.Equals(BackColor))
+            {
                 _colorRandomizer = true;
+            }
             _linesColor = linesColor;
             _backTimer = backTimer;
             _workEnd = workEnd;
@@ -51,13 +56,18 @@ namespace MorphClocks
 
             _shapes = new List<Shape>();
             for (var i = 0; i < 1; i++)
-                _shapes.Add(new Shape(_previewMode, AppSettings.Instance.Move3D, AppSettings.Instance.MixPoint));
+                _shapes.Add(new Shape(_previewMode, AppSettings.Instance.Move3D, AppSettings.Instance.MixPoint, AppSettings.Instance.BackColor));
 
-            if (!_previewMode && _colorRandomizer)
+            if (SnowFlakesEnabled)
             {
                 _flakesCount = _random.Next(25, 100);
                 PrepareSnowFlakes(rect);
             }
+        }
+
+        private bool SnowFlakesEnabled
+        {
+            get { return !_previewMode && (_colorRandomizer || BackColor.GetBrightness() > 0.9); }
         }
 
         public static List<Color> GetStaticPropertyBag()
@@ -83,7 +93,7 @@ namespace MorphClocks
                 {
                     _cIdx = _random.Next(1, _colors.Count - 1);
                 }
-                while (_colors[_cIdx].GetBrightness() < 0.1);
+                while (_colors[_cIdx].GetBrightness().Equals(BackColor.GetBrightness()));
                 _cChangedTime = DateTime.Now;
             }
             return _colors[_cIdx];
@@ -231,16 +241,16 @@ namespace MorphClocks
                 TextColor = ColorRandomizer();
             //setting the color palette
             var nowTime = DateTime.Now;
-            var backColor = _workEnd > 0 && nowTime.Hour >= _workEnd ? Color.DarkRed : Color.Black;
-            using (var backBrush = new SolidBrush(backColor))
+            //var backColor = _workEnd > 0 && nowTime.Hour >= _workEnd ? Color.DarkRed : Color.Black;
+            using (var backBrush = new SolidBrush(BackColor))
                 graphics.FillRectangle(backBrush, rect);
             foreach (var shape in _shapes)
             {
-                shape.BackColor = backColor;
+                shape.BackColor = BackColor;
                 shape.DrawScreen(graphics, rect);
             }
             // drawing clocks and figure
-            if (!_previewMode && _colorRandomizer)
+            if (SnowFlakesEnabled)
                 DrawFlakes(graphics, rect);
             DrawTimer(graphics, rect, 0, 0, nowTime);
         }
