@@ -45,7 +45,7 @@ namespace MorphClocks
             TextColor = textColor;
             BackColor = backColor;
             //if (TextColor.Equals(BackColor) || TextColor.GetBrightness() < 0.1)
-            if (TextColor.Equals(BackColor))
+            if (TextColor.Equals(BackColor) || BackColor == Color.Transparent)
             {
                 _colorRandomizer = true;
             }
@@ -67,7 +67,7 @@ namespace MorphClocks
 
         private bool SnowFlakesEnabled
         {
-            get { return !_previewMode && (_colorRandomizer || BackColor.GetBrightness() > 0.9); }
+            get { return !_previewMode && (DateTime.Now.Month < 3 || DateTime.Now.Month > 11) && (_colorRandomizer || BackColor.GetBrightness() > 0.9); }
         }
 
         public static List<Color> GetStaticPropertyBag()
@@ -242,8 +242,8 @@ namespace MorphClocks
             //setting the color palette
             var nowTime = DateTime.Now;
             //var backColor = _workEnd > 0 && nowTime.Hour >= _workEnd ? Color.DarkRed : Color.Black;
-            using (var backBrush = new SolidBrush(BackColor))
-                graphics.FillRectangle(backBrush, rect);
+//            using (var backBrush = new SolidBrush(BackColor))
+//                graphics.FillRectangle(backBrush, rect);
             foreach (var shape in _shapes)
             {
                 shape.BackColor = BackColor;

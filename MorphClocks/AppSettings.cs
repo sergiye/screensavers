@@ -18,7 +18,7 @@ namespace MorphClocks
         {
             FontName = "Vivaldi";
             TextColor = Color.CornflowerBlue;
-            BackColor = Color.Black;
+            BackColor = Color.Transparent;
             LineColor = Color.White;
         }
 

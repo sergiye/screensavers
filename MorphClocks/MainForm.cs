@@ -75,7 +75,8 @@ namespace MorphClocks
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            BackColor = AppSettings.Instance.BackColor;
+            if (AppSettings.Instance.BackColor != Color.Transparent)
+                BackColor = AppSettings.Instance.BackColor;
             painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.TextColor, 
                 AppSettings.Instance.BackColor, AppSettings.Instance.LineColor, AppSettings.Instance.BackTimer, 
                 AppSettings.Instance.WorkEnd, AppSettings.Instance.DrawCircle, IsPreviewMode);
@@ -83,12 +84,21 @@ namespace MorphClocks
             {
                 Refresh();
             }
+//            int handle = (int)this.Handle;
+            var localpath = Application.StartupPath;
+//            var _play = new MPlayer(handle, MplayerBackends.Direct3D, localpath + @"\mplayer\mplayer.exe");
+//            _play.Play(localpath + @"\video.mp4");
+//            _play.Mute();
+            //_play.VideoExited += (o, ev) => { _play.Play(localpath + @"\video.mp4");};
+            //_play.CurrentPosition += (o, ev) => { };
+            //_play.SetSize(this.Width, this.Height);
+            pictureBox.Image = Image.FromFile(localpath + "/image.gif");
             _timer.Enabled = true;
         }
 
         private void MainForm_Paint(object sender, PaintEventArgs e)
         {
-            var r = ClientRectangle;
+            var r = e.ClipRectangle;//ClientRectangle;
             using (var bitmap = new Bitmap(r.Width, r.Height))
             {
                 //using (var graphics = this.CreateGraphics())
