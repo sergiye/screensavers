@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -6,14 +7,14 @@ using System.Xml.Serialization;
 
 namespace MorphClocks
 {
-    public static class XmlHelper
+    internal static class Extensions
     {
-        public static void SerializeToFile(string filePath, object value, bool useFormatting = true)
+        internal static void SerializeToFile(string filePath, object value, bool useFormatting = true)
         {
             File.WriteAllText(filePath, Serialize(value, useFormatting));
         }
 
-        public static string Serialize(object value, bool useFormatting = false)
+        internal static string Serialize(object value, bool useFormatting = false)
         {
             if (value == null) return null;
             var xmlFormatting = new XmlWriterSettings { OmitXmlDeclaration = true };
@@ -33,7 +34,7 @@ namespace MorphClocks
             }
         }
 
-        public static T DeserializeFile<T>(string fileName) where T : class
+        internal static T DeserializeFile<T>(string fileName) where T : class
         {
             T result = null;
             if (File.Exists(fileName))
@@ -41,7 +42,7 @@ namespace MorphClocks
             return result;
         }
 
-        public static T Deserialize<T>(string str) where T : class
+        internal static T Deserialize<T>(string str) where T : class
         {
             try
             {
@@ -56,6 +57,11 @@ namespace MorphClocks
                 Console.WriteLine(e.Message);
                 return null;
             }
+        }
+
+        internal static bool IsTransparent(this Color color)
+        {
+            return color.ToArgb().Equals(Color.Transparent.ToArgb());
         }
     }
 }

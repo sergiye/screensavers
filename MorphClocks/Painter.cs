@@ -7,15 +7,15 @@ using System.Reflection;
 
 namespace MorphClocks
 {
-    public class Painter
+    internal class Painter
     {
         private class Snowflake
         {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public int R { get; set; } //radius
-            public int Depth { get; set; } //painting depth
-            public float D { get; set; } //density
+            internal float X { get; set; }
+            internal float Y { get; set; }
+            internal int R { get; set; } //radius
+            internal int Depth { get; set; } //painting depth
+            internal float D { get; set; } //density
         }
 
         private readonly bool _previewMode;
@@ -28,14 +28,14 @@ namespace MorphClocks
         private readonly Random _random;
 
         private readonly bool _colorRandomizer;
-        public Color TextColor { get; set; }
-        public Color BackColor { get; set; }
+        internal Color TextColor { get; set; }
+        internal Color BackColor { get; set; }
 
         //snowflake particles
         private readonly int _flakesCount; //max particles
         private readonly List<Snowflake> _particles = new List<Snowflake>();
 
-        public Painter(Rectangle rect, string fontName, Color textColor, Color backColor, Color linesColor, bool backTimer = false, int workEnd = 0, 
+        internal Painter(Rectangle rect, string fontName, Color textColor, Color backColor, Color linesColor, bool backTimer = false, int workEnd = 0, 
             bool drawCircle = false, bool previewMode = false)
         {
             _random = new Random();
@@ -45,7 +45,7 @@ namespace MorphClocks
             TextColor = textColor;
             BackColor = backColor;
             //if (TextColor.Equals(BackColor) || TextColor.GetBrightness() < 0.1)
-            if (TextColor.Equals(BackColor) || BackColor == Color.Transparent)
+            if (TextColor.Equals(BackColor) || BackColor.IsTransparent())
             {
                 _colorRandomizer = true;
             }
@@ -70,7 +70,7 @@ namespace MorphClocks
             get { return !_previewMode && (DateTime.Now.Month < 3 || DateTime.Now.Month > 11) && (_colorRandomizer || BackColor.GetBrightness() > 0.9); }
         }
 
-        public static List<Color> GetStaticPropertyBag()
+        internal static List<Color> GetStaticPropertyBag()
         {
             const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
@@ -85,7 +85,7 @@ namespace MorphClocks
         private readonly List<Color> _colors = GetStaticPropertyBag();
         private static DateTime _cChangedTime = DateTime.Now;
         private static int _cIdx = 1;
-        public Color ColorRandomizer()
+        internal Color ColorRandomizer()
         {
             if (_cChangedTime.AddSeconds(3) < DateTime.Now)
             {
@@ -235,7 +235,7 @@ namespace MorphClocks
             }
         }
 
-        public void UpdateDisplay(Graphics graphics, Rectangle rect)
+        internal void UpdateDisplay(Graphics graphics, Rectangle rect)
         {
             if (_colorRandomizer)
                 TextColor = ColorRandomizer();
@@ -279,7 +279,7 @@ namespace MorphClocks
 //                return fontTester.Name == fontName;
         }
 
-        public void DrawTimer(Graphics graphics, Rectangle r, long aLeft, long aTop, DateTime nowTime)
+        internal void DrawTimer(Graphics graphics, Rectangle r, long aLeft, long aTop, DateTime nowTime)
         {
             long x = (r.Right-r.Left) / 2;
             long y = (r.Bottom-r.Top) / 2;

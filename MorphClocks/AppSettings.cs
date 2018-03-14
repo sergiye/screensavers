@@ -63,7 +63,7 @@ namespace MorphClocks
         {
             var fileName = GetSettingsFilePath();
             GC.Collect(GC.MaxGeneration);
-            XmlHelper.SerializeToFile(fileName, this);
+            Extensions.SerializeToFile(fileName, this);
         }
 
         public static AppSettings Load()
@@ -73,7 +73,7 @@ namespace MorphClocks
             {
                 if (File.Exists(fileName))
                 {
-                    var result = XmlHelper.DeserializeFile<AppSettings>(fileName);
+                    var result = Extensions.DeserializeFile<AppSettings>(fileName);
                     if (result != null)
                         return result;
                     Console.WriteLine("Error loading settings file");

@@ -45,7 +45,7 @@ namespace MorphClocks
         {
             this.Bounds = Bounds;
             //hide the cursor
-            Cursor.Hide();
+//            Cursor.Hide();
         }
 
         //This constructor is the handle to the select screen saver dialog preview window
@@ -75,7 +75,7 @@ namespace MorphClocks
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            if (AppSettings.Instance.BackColor != Color.Transparent)
+            if (!AppSettings.Instance.BackColor.IsTransparent())
                 BackColor = AppSettings.Instance.BackColor;
             painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.TextColor, 
                 AppSettings.Instance.BackColor, AppSettings.Instance.LineColor, AppSettings.Instance.BackTimer, 
@@ -92,7 +92,14 @@ namespace MorphClocks
             //_play.VideoExited += (o, ev) => { _play.Play(localpath + @"\video.mp4");};
             //_play.CurrentPosition += (o, ev) => { };
             //_play.SetSize(this.Width, this.Height);
-            pictureBox.Image = Image.FromFile(localpath + "/image.gif");
+            try
+            {
+                pictureBox.Image = Image.FromFile(localpath + "/image.gif");
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
             _timer.Enabled = true;
         }
 

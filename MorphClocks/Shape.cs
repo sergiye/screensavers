@@ -3,15 +3,15 @@ using System.Drawing;
 
 namespace MorphClocks
 {
-    public class Shape
+    internal class Shape
     {
         private const int PointsCount = 200;
 
-        public struct Coords3D
+        internal struct Coords3D
         {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public float Z { get; set; }
+            internal float X { get; set; }
+            internal float Y { get; set; }
+            internal float Z { get; set; }
         }
 
         private enum Shapes
@@ -69,13 +69,13 @@ namespace MorphClocks
         private const int FogCoef = 62;     // Коэффициент тумана / Fog coefficient
         private int WaitPer = 2000; // Time of the figure transformation
 
-        public bool UnSortPoints { get; set; }
-        public bool Move3D { get; set; }
-        public Color BackColor { get; set; }
+        internal bool UnSortPoints { get; set; }
+        internal bool Move3D { get; set; }
+        internal Color BackColor { get; set; }
 
         #endregion Config
 
-        public Shape(bool preview, bool move3d, bool mixPoints, Color backColor)
+        internal Shape(bool preview, bool move3d, bool mixPoints, Color backColor)
         {
             _preview = preview;
             _random = new Random();
@@ -817,7 +817,7 @@ namespace MorphClocks
 
         #endregion
 
-        public void DrawScreen(Graphics graphics, Rectangle rect) //procedure of screen drawing
+        internal void DrawScreen(Graphics graphics, Rectangle rect) //procedure of screen drawing
         {
             _scrX = rect.Right / 2;
             _scrY = rect.Bottom / 2;
