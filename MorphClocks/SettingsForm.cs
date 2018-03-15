@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace MorphClocks
@@ -63,7 +64,7 @@ namespace MorphClocks
 
         private void btnFont_Click(object sender, EventArgs e)
         {
-            var dlg = new FontDialog();
+            var dlg = new FontDialog {Font = new Font(btnFont.Text, 8)};
             if (dlg.ShowDialog() != DialogResult.OK) return;
             btnFont.Text = dlg.Font.Name;
             AppSettings.Instance.FontName = dlg.Font.Name;
