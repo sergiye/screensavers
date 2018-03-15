@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using System.Reflection;
 
 namespace MorphClocks
@@ -267,16 +266,11 @@ namespace MorphClocks
             return String.Format("{0:00}:{1:00}:{2:00}", hh, mm, ss);
         }
 
-        private static bool CheckFontExists(string fontName)
+        private static Font CheckFontExists(string fontName, float size, FontStyle style)
         {
-            var fontsCollection = new InstalledFontCollection();
-            foreach (var fontFamiliy in fontsCollection.Families)
-            {
-                if (fontFamiliy.Name == fontName) return true;
-            }
-            return false;
-//            using (Font fontTester = new Font(fontName, fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
-//                return fontTester.Name == fontName;
+            var fontTester = new Font(fontName, size, style, GraphicsUnit.Pixel);
+            return fontTester;//.Name == fontName ? fontTester 
+                //: new Font(FontFamily.GenericSerif, size, style);
         }
 
         internal void DrawTimer(Graphics graphics, Rectangle r, long aLeft, long aTop, DateTime nowTime)
@@ -299,9 +293,7 @@ namespace MorphClocks
                 //Label and Timer paint
                 using (var textBrush = new SolidBrush(TextColor))
                 {
-                    using (var textFont = CheckFontExists(_fontName)
-                        ? new Font(_fontName, size, _previewMode ? FontStyle.Regular : FontStyle.Bold)
-                        : new Font(FontFamily.GenericSerif, size, _previewMode ? FontStyle.Regular : FontStyle.Bold))
+                    using (var textFont = CheckFontExists(_fontName, size, _previewMode ? FontStyle.Regular : FontStyle.Bold))
                     {
                         //var textFont = _modernFont ? new Font("Segoe Script", size, FontStyle.Bold) : new Font(FontFamily.GenericSerif, size, FontStyle.Bold);
 
