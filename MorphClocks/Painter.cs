@@ -268,9 +268,15 @@ namespace MorphClocks
 
         private static Font CheckFontExists(string fontName, float size, FontStyle style)
         {
-            var fontTester = new Font(fontName, size, style, GraphicsUnit.Pixel);
-            return fontTester;//.Name == fontName ? fontTester 
-                //: new Font(FontFamily.GenericSerif, size, style);
+            try
+            {
+                var fontTester = new Font(fontName, size, style, GraphicsUnit.Pixel);
+                return fontTester;//.Name == fontName ? fontTester 
+            }
+            catch (Exception)
+            {
+                return new Font(FontFamily.GenericSansSerif, size, style);
+            }
         }
 
         internal void DrawTimer(Graphics graphics, Rectangle r, long aLeft, long aTop, DateTime nowTime)

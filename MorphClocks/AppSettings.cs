@@ -16,7 +16,7 @@ namespace MorphClocks
 
         private AppSettings()
         {
-            FontName = "Vivaldi";
+            FontName = "Baskerville Old Face";
             TextColor = Color.CornflowerBlue;
             BackColor = Color.Transparent;
             LineColor = Color.White;
