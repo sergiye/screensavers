@@ -40,17 +40,17 @@ namespace MorphClocks
         //will show the screen saver
         static void ShowScreensaver()
         {
-            //var screensaver = new MainForm(Screen.AllScreens[1].Bounds);
-            var screensaver = new MainForm(Screen.PrimaryScreen.Bounds);
-            screensaver.Show();
-
+            //var screensaver = new MainForm(Screen.AllScreens[0].Bounds);
+            //var screensaver = new MainForm(Screen.PrimaryScreen.Bounds);
+            //screensaver.Show();
+            
             //loops through all the computer's screens (monitors)
-//            foreach (var screen in Screen.AllScreens)
-//            {
-//                //creates a form just for that screen and passes it the bounds of that screen
-//                var screensaver = new MainForm(screen.Bounds);
-//                screensaver.Show();
-//            }
+            foreach (var screen in Screen.AllScreens)
+            {
+                //creates a form just for that screen and passes it the bounds of that screen
+                var screensaver = new MainForm(screen.Bounds);
+                screensaver.Show();
+            }
         }
     }
 }
