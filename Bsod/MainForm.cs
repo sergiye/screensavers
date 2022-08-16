@@ -68,7 +68,7 @@ namespace Bsod {
     private void MainForm_Shown(object sender, EventArgs e) {
       if (!isPreviewMode) //we don't want all those effects for just a preview
       {
-        Refresh();
+        Invalidate();
         //keep the screen black for one second to simulate the changing of screen resolution
         System.Threading.Thread.Sleep(1000);
       }

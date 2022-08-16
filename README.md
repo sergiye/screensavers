@@ -5,10 +5,19 @@
 
 Screen saver projects written on c#
 
-## Features
+## Projects
 
-MorphClocks - displays the time (clock) with rotating 3D objects in the background (and snowflakes in winter)
-Bsod - displays blue screen with random BSOD message
+### MorphClocks 
+
+displays the time (clock) with rotating 3D objects in the background (and snowflakes in winter)
+
+use transparent color values for BackColor and TextColor (by default) colors to enable color-randomizer mode with snowflakes
+
+also, you can put your own 'background.gif' file near executable to apply custom app background
+
+### Bsod
+
+displays blue screen with random BSOD message
 
 # Download
 

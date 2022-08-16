@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -33,9 +34,8 @@ namespace MorphClocks {
       InitializeComponent();
       StartPosition = FormStartPosition.Manual;
 //            Application.Idle += (sender, args) => Refresh();
-      timer = new Timer();
-      timer.Tick += (sender, args) => Refresh();
-      timer.Interval = 30;
+      timer = new Timer { Interval = 30 };
+      timer.Tick += (sender, args) => Invalidate();
     }
 
     //This constructor is passed the bounds this form is to show in
@@ -70,41 +70,39 @@ namespace MorphClocks {
     #region GUI
 
     private void MainForm_Shown(object sender, EventArgs e) {
+      
       if (!AppSettings.Instance.BackColor.IsTransparent())
         BackColor = AppSettings.Instance.BackColor;
+      
       painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.TextColor,
         AppSettings.Instance.BackColor, AppSettings.Instance.LineColor, AppSettings.Instance.DrawCircle, isPreviewMode);
       //if (!IsPreviewMode) //we don't want all those effects for just a preview
       {
-        Refresh();
+        Invalidate();
       }
-//            int handle = (int)this.Handle;
       var localPath = Application.StartupPath;
-//            var _play = new MPlayer(handle, MplayerBackends.Direct3D, localpath + @"\mplayer\mplayer.exe");
-//            _play.Play(localpath + @"\video.mp4");
-//            _play.Mute();
-      //_play.VideoExited += (o, ev) => { _play.Play(localpath + @"\video.mp4");};
-      //_play.CurrentPosition += (o, ev) => { };
-      //_play.SetSize(this.Width, this.Height);
-      try {
-        pictureBox.Image = Image.FromFile(localPath + "/image.gif");
-      }
-      catch (Exception) {
-        //ignore
-      }
-
+      
+      // int handle = (int)this.Handle;
+      // var play = new MPlayer(handle, MplayerBackends.Direct3D, localpath + @"\mplayer\mplayer.exe");
+      // play.Play(localpath + @"\video.mp4");
+      // play.Mute();
+      // play.VideoExited += (o, ev) => { play.Play(localpath + @"\video.mp4");};
+      // play.CurrentPosition += (o, ev) => { };
+      // play.SetSize(this.Width, this.Height);
+      
+      var backgroundPath = localPath + "/background.gif";
+      if (File.Exists(backgroundPath))
+        try {
+          pictureBox.Image = Image.FromFile(backgroundPath);
+        }
+        catch (Exception) {
+          pictureBox.Image = null;
+        }
       timer.Enabled = true;
     }
 
     private void MainForm_Paint(object sender, PaintEventArgs e) {
-      var r = e.ClipRectangle; //ClientRectangle;
-      using (var bitmap = new Bitmap(r.Width, r.Height)) {
-        //using (var graphics = this.CreateGraphics())
-        using (var graphics = Graphics.FromImage(bitmap)) {
-          painter.UpdateDisplay(graphics, r);
-          e.Graphics.DrawImageUnscaled(bitmap, 0, 0, bitmap.Width, bitmap.Height);
-        }
-      }
+      painter.UpdateDisplay(e.Graphics, e.ClipRectangle);
     }
 
     #endregion
@@ -124,7 +122,7 @@ namespace MorphClocks {
     //start off OriginalLoction with an X and Y of int.MaxValue, because
     //it is impossible for the cursor to be at that position. That way, we
     //know if this variable has been set yet.
-    Point originalLocation = new Point(int.MaxValue, int.MaxValue);
+    private Point originalLocation = new Point(int.MaxValue, int.MaxValue);
 
     private void MainForm_MouseMove(object sender, MouseEventArgs e) {
       if (isPreviewMode) return;
