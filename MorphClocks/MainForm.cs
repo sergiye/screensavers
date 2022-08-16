@@ -22,6 +22,9 @@ namespace MorphClocks {
     [DllImport("user32.dll")]
     static extern bool GetClientRect(IntPtr hWnd, out Rectangle lpRect);
 
+    [DllImport("user32.dll")]
+    public static extern bool LockWorkStation();
+    
     #endregion
 
     readonly bool isPreviewMode;
@@ -33,7 +36,8 @@ namespace MorphClocks {
     public MainForm() {
       InitializeComponent();
       StartPosition = FormStartPosition.Manual;
-//            Application.Idle += (sender, args) => Refresh();
+      ShowInTaskbar = false;
+      //Application.Idle += (sender, args) => Refresh();
       timer = new Timer { Interval = 30 };
       timer.Tick += (sender, args) => Invalidate();
     }
@@ -53,7 +57,7 @@ namespace MorphClocks {
       SetParent(Handle, previewHandle);
 
       //make this a child window, so when the select screen saver dialog closes, this will also close
-      SetWindowLong(Handle, -16, new IntPtr(GetWindowLong(Handle, -16) | 0x40000000));
+      SetWindowLong(Handle, -20, new IntPtr(GetWindowLong(Handle, -20) | 0x00000080));
 
       //set our window's size to the size of our window's new parent
       GetClientRect(previewHandle, out var parentRect);
@@ -74,7 +78,7 @@ namespace MorphClocks {
       if (!AppSettings.Instance.BackColor.IsTransparent())
         BackColor = AppSettings.Instance.BackColor;
       
-      painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.TextColor,
+      painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.FontSize, AppSettings.Instance.TextColor,
         AppSettings.Instance.BackColor, AppSettings.Instance.LineColor, AppSettings.Instance.DrawCircle, isPreviewMode);
       //if (!IsPreviewMode) //we don't want all those effects for just a preview
       {
@@ -111,12 +115,12 @@ namespace MorphClocks {
 
     private void MainForm_KeyDown(object sender, KeyEventArgs e) {
       if (isPreviewMode) return;
-      Application.Exit();
+      Exit();
     }
 
     private void MainForm_Click(object sender, EventArgs e) {
       if (isPreviewMode) return;
-      Application.Exit();
+      Exit();
     }
 
     //start off OriginalLoction with an X and Y of int.MaxValue, because
@@ -133,10 +137,16 @@ namespace MorphClocks {
 
       //see if the mouse has moved more than 20 pixels in any direction. If it has, close the application.
       if (Math.Abs(e.X - originalLocation.X) > 20 | Math.Abs(e.Y - originalLocation.Y) > 20) {
-        Application.Exit();
+        Exit();
       }
     }
 
+    private void Exit() {
+      if (AppSettings.Instance.LockOnExit)
+        LockWorkStation();
+      Application.Exit();
+    }
+    
     #endregion
   }
 }

@@ -15,6 +15,7 @@ namespace MorphClocks {
 
     private AppSettings() {
       FontName = "Segoe print";
+      FontSize = 48;
       TextColor = Color.Transparent;
       BackColor = Color.Transparent;
       LineColor = Color.FromArgb(-7237121);
@@ -22,6 +23,9 @@ namespace MorphClocks {
 
     [XmlAttribute] 
     public string FontName;
+    
+    [XmlAttribute] 
+    public float FontSize;
     
     [XmlIgnore] 
     public Color TextColor;
@@ -51,6 +55,7 @@ namespace MorphClocks {
     [XmlAttribute] public bool MixPoint;
     [XmlAttribute] public bool Move3D;
     [XmlAttribute] public bool DrawCircle;
+    [XmlAttribute] public bool LockOnExit;
 
     #region Load/Save
 

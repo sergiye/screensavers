@@ -18,6 +18,7 @@ namespace MorphClocks {
 
     private readonly bool previewMode;
     private readonly string fontName;
+    private readonly float fontSize;
     private readonly bool drawCircle;
     private readonly Color linesColor;
     private readonly List<Shape> shapes;
@@ -31,13 +32,14 @@ namespace MorphClocks {
     private readonly int flakesCount; //max particles
     private readonly List<Snowflake> particles = new List<Snowflake>();
 
-    internal Painter(Rectangle rect, string fontName, Color textColor, Color backColor, Color linesColor,
+    internal Painter(Rectangle rect, string fontName, float fontSize, Color textColor, Color backColor, Color linesColor,
       bool drawCircle = false, bool previewMode = false) {
       
       random = new Random();
 
       this.previewMode = previewMode;
       this.fontName = fontName;
+      this.fontSize = fontSize;
       TextColor = textColor;
       BackColor = backColor;
       //if (TextColor.Equals(BackColor) || TextColor.GetBrightness() < 0.1)
