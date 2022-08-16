@@ -57,7 +57,10 @@ namespace MorphClocks {
       SetParent(Handle, previewHandle);
 
       //make this a child window, so when the select screen saver dialog closes, this will also close
-      SetWindowLong(Handle, -20, new IntPtr(GetWindowLong(Handle, -20) | 0x00000080));
+      // if (isPreviewMode)
+        SetWindowLong(Handle, -20, new IntPtr(GetWindowLong(Handle, -20) | 0x00000080));
+      // else
+      //   SetWindowLong(Handle, -16, new IntPtr(GetWindowLong(Handle, -16) | 0x40000000));
 
       //set our window's size to the size of our window's new parent
       GetClientRect(previewHandle, out var parentRect);
@@ -78,8 +81,7 @@ namespace MorphClocks {
       if (!AppSettings.Instance.BackColor.IsTransparent())
         BackColor = AppSettings.Instance.BackColor;
       
-      painter = new Painter(ClientRectangle, AppSettings.Instance.FontName, AppSettings.Instance.FontSize, AppSettings.Instance.TextColor,
-        AppSettings.Instance.BackColor, AppSettings.Instance.LineColor, AppSettings.Instance.DrawCircle, isPreviewMode);
+      painter = new Painter(ClientRectangle, isPreviewMode);
       //if (!IsPreviewMode) //we don't want all those effects for just a preview
       {
         Invalidate();

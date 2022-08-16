@@ -17,12 +17,14 @@ namespace MorphClocks {
     }
 
     private readonly bool previewMode;
-    private readonly string fontName;
-    private readonly float fontSize;
+    
+    private readonly Font textFont;
+    private readonly Pen linesPen;
+    private readonly HatchBrush flakesBrush;
+    
     private readonly bool drawCircle;
-    private readonly Color linesColor;
     private readonly List<Shape> shapes;
-    private readonly Random random;
+    private readonly Random random = new Random();
 
     private readonly bool colorRandomizer;
     private Color TextColor { get; set; }
@@ -32,23 +34,25 @@ namespace MorphClocks {
     private readonly int flakesCount; //max particles
     private readonly List<Snowflake> particles = new List<Snowflake>();
 
-    internal Painter(Rectangle rect, string fontName, float fontSize, Color textColor, Color backColor, Color linesColor,
-      bool drawCircle = false, bool previewMode = false) {
+    internal Painter(Rectangle rect, bool previewMode = false) {
       
-      random = new Random();
-
       this.previewMode = previewMode;
-      this.fontName = fontName;
-      this.fontSize = fontSize;
-      TextColor = textColor;
-      BackColor = backColor;
+
+      var size = rect.Width > rect.Height ? rect.Height / 18 : rect.Width / 18;
+      textFont = CheckFontExists(AppSettings.Instance.FontName, size, previewMode ? FontStyle.Regular : FontStyle.Bold);
+      linesPen = new Pen(AppSettings.Instance.LineColor, 3);
+      flakesBrush = new HatchBrush(HatchStyle.LargeConfetti, Color.AliceBlue);
+      // flakesBrush = new SolidBrush(Color.AliceBlue);
+
+      TextColor = AppSettings.Instance.TextColor;
+      BackColor = AppSettings.Instance.BackColor;
+
       //if (TextColor.Equals(BackColor) || TextColor.GetBrightness() < 0.1)
       if (TextColor.Equals(BackColor) && BackColor.IsTransparent()) {
         colorRandomizer = true;
       }
 
-      this.linesColor = linesColor;
-      this.drawCircle = drawCircle;
+      drawCircle = AppSettings.Instance.DrawCircle;
 
       shapes = new List<Shape>();
       for (var i = 0; i < 1; i++)
@@ -63,7 +67,7 @@ namespace MorphClocks {
 
     private bool SnowFlakesEnabled => !previewMode && (colorRandomizer || (BackColor.GetBrightness() > 0.9) && (DateTime.Now.Month < 3 || DateTime.Now.Month > 11));
 
-    internal static List<Color> GetStaticPropertyBag() {
+    private static List<Color> GetStaticPropertyBag() {
       const BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
       var map = new List<Color>();
@@ -79,7 +83,7 @@ namespace MorphClocks {
     private static DateTime cChangedTime = DateTime.Now;
     private static int cIdx = 1;
 
-    internal Color ColorRandomizer() {
+    private Color ColorRandomizer() {
       if (cChangedTime.AddSeconds(3) < DateTime.Now) {
         do {
           cIdx = random.Next(1, colors.Count - 1);
@@ -105,7 +109,7 @@ namespace MorphClocks {
 
     private static void DrawSnowflake(Graphics gr, Snowflake flake) {
       var initiator = new List<PointF>();
-      float height = 0.75f * flake.R;
+      var height = 0.75f * flake.R;
       var width = (float) (height / Math.Sqrt(3.0) * 2);
       var y3 = flake.Y + height;
       var y1 = y3 - height;
@@ -165,12 +169,7 @@ namespace MorphClocks {
     private void DrawFlakes(Graphics graphics, Rectangle rect) {
       foreach (var p in particles) {
         //DrawSnowflake(graphics, p);
-
-        using (var brush = new HatchBrush(HatchStyle.LargeConfetti, Color.AliceBlue))
-//                using (var brush = new SolidBrush(Color.AliceBlue))
-        {
-          graphics.FillEllipse(brush, p.X, p.Y, p.R, p.R);
-        }
+        graphics.FillEllipse(flakesBrush, p.X, p.Y, p.R, p.R);
       }
 
       UpdateFlakes(rect);
@@ -219,112 +218,99 @@ namespace MorphClocks {
       if (colorRandomizer)
         TextColor = ColorRandomizer();
       //setting the color palette
-      var nowTime = DateTime.Now;
-      //var backColor = _workEnd > 0 && nowTime.Hour >= _workEnd ? Color.DarkRed : Color.Black;
-//            using (var backBrush = new SolidBrush(BackColor))
-//                graphics.FillRectangle(backBrush, rect);
-      foreach (var shape in shapes) {
-        shape.BackColor = BackColor;
+      // graphics.Clear(BackColor);
+      foreach (var shape in shapes)
         shape.DrawScreen(graphics, rect);
-      }
 
       // drawing clocks and figure
       if (SnowFlakesEnabled)
         DrawFlakes(graphics, rect);
-      DrawTimer(graphics, rect, 0, 0, nowTime);
+      DrawTimer(graphics, rect);
     }
 
     private static Font CheckFontExists(string fontName, float size, FontStyle style) {
       try {
-        var fontTester = new Font(fontName, size, style, GraphicsUnit.Pixel);
-        return fontTester; //.Name == fontName ? fontTester 
+        return  new Font(fontName, size, style, GraphicsUnit.Pixel);
       }
       catch (Exception) {
         return new Font(FontFamily.GenericSansSerif, size, style);
       }
     }
 
-    internal void DrawTimer(Graphics graphics, Rectangle r, long aLeft, long aTop, DateTime nowTime) {
-      long x = (r.Right - r.Left) / 2;
-      long y = (r.Bottom - r.Top) / 2;
-      var size = x > y ? y / 9 : x / 9;
-
-      x = x + aLeft;
-      y = y + aTop;
+    private void DrawTimer(Graphics graphics, Rectangle r, long aLeft = 0, long aTop = 0) {
+      var x = (r.Right - r.Left) / 2 + aLeft;
+      var y = (r.Bottom - r.Top) / 2 + aTop;
 
       //clock paint
-      using (var linesPen = new Pen(linesColor, 3)) {
-        if (drawCircle) {
-          graphics.DrawEllipse(linesPen, aLeft, aTop, aLeft + r.Right - r.Left, aTop + r.Bottom - r.Top);
-        }
-
-        //Label and Timer paint
-        using (var textBrush = new SolidBrush(TextColor)) {
-          using (var textFont = CheckFontExists(fontName, size, previewMode ? FontStyle.Regular : FontStyle.Bold)) {
-            var text = nowTime.ToString("MMM-dd dddd");
-            var textSize = graphics.MeasureString(text, textFont);
-            graphics.DrawString(text, textFont, textBrush,
-              new PointF(x - textSize.Width / 2, (float) (r.Bottom - r.Top) / 7 + textSize.Height / 2));
-            text = nowTime.ToString("HH:mm:ss");
-            textSize = graphics.MeasureString(text, textFont);
-            graphics.DrawString(text, textFont, textBrush,
-              new PointF(x - textSize.Width / 2,
-                (float) (r.Bottom - r.Top) * 5 / 7 + textSize.Height / 2));
-
-            //clock face
-            for (var i = 1; i < 13; i++) {
-              text = i.ToString("##");
-              textSize = graphics.MeasureString(text, textFont);
-              graphics.DrawString(text, textFont, textBrush, new PointF(
-                (float) (x - textSize.Width / 2 +
-                         (x - aLeft) * 2.8 * Math.Sin(i * 30 * Math.PI / 180) / 3),
-                (float) (y - textSize.Height / 2 -
-                         (y - aTop) * 2.8 * Math.Cos(i * 30 * Math.PI / 180) / 3)));
-            }
-          }
-        }
-
-        for (var i = 1; i < 61; i++) {
-          if (i % 5 != 0) {
-            graphics.DrawLine(linesPen,
-              new PointF((float) (x + (x - aLeft - 10) * Math.Sin(i * 6 * Math.PI / 180)),
-                (float) (y - (y - aTop - 10) * Math.Cos(i * 6 * Math.PI / 180))),
-              new PointF((float) (x + (x - aLeft - 10) / 1.03 * Math.Sin(i * 6 * Math.PI / 180)),
-                (float) (y - (y - aTop - 10) / 1.03 * Math.Cos(i * 6 * Math.PI / 180))));
-          }
-          else {
-            graphics.DrawLine(linesPen,
-              new PointF((float) (x + (x - aLeft) / 1.15 * Math.Sin(i * 6 * Math.PI / 180)),
-                (float) (y - (y - aTop) / 1.15 * Math.Cos(i * 6 * Math.PI / 180))),
-              new PointF((float) (x + (x - aLeft) / 1.20 * Math.Sin(i * 6 * Math.PI / 180)),
-                (float) (y - (y - aTop) / 1.20 * Math.Cos(i * 6 * Math.PI / 180))));
-          }
-        }
-
-        //Arrows paint
-        linesPen.Width = previewMode ? 3 : 7;
-        graphics.DrawEllipse(linesPen, x - 3, y - 3, 6, 6);
-        //hour
-        graphics.DrawLine(linesPen, new PointF(x, y),
-          new PointF(
-            (float) (x + (x - aLeft) / 2.5 *
-              Math.Sin(((float) nowTime.Minute / 60 + nowTime.Hour) * 30 * Math.PI / 180)),
-            (float) (y - (y - aTop) / 2.5 *
-              Math.Cos(((float) nowTime.Minute / 60 + nowTime.Hour) * 30 * Math.PI / 180))));
-        //minute
-        linesPen.Width = previewMode ? 2 : 4;
-        graphics.DrawLine(linesPen, new PointF(x, y),
-          new PointF(
-            (float) (x + (x - aLeft) / 1.5 *
-              Math.Sin(((float) nowTime.Second / 60 + nowTime.Minute) * 6 * Math.PI / 180)),
-            (float) (y - (y - aTop) / 1.5 *
-              Math.Cos(((float) nowTime.Second / 60 + nowTime.Minute) * 6 * Math.PI / 180))));
-        //second
-        linesPen.Width = 1;
-        graphics.DrawLine(linesPen, new PointF(x, y),
-          new PointF((float) (x + (x - aLeft) / 1.1 * Math.Sin(nowTime.Second * 6 * Math.PI / 180)),
-            (float) (y - (y - aTop) / 1.1 * Math.Cos(nowTime.Second * 6 * Math.PI / 180))));
+      if (drawCircle) {
+        graphics.DrawEllipse(linesPen, aLeft, aTop, aLeft + r.Right - r.Left, aTop + r.Bottom - r.Top);
       }
+
+      var nowTime = DateTime.Now;
+      //Label and Timer paint
+      using (var textBrush = new SolidBrush(TextColor)) {
+        var text = nowTime.ToString("MMM-dd dddd");
+        var textSize = graphics.MeasureString(text, textFont);
+        graphics.DrawString(text, textFont, textBrush,
+          new PointF(x - textSize.Width / 2, (float) (r.Bottom - r.Top) / 7 + textSize.Height / 2));
+        text = nowTime.ToString("HH:mm:ss");
+        textSize = graphics.MeasureString(text, textFont);
+        graphics.DrawString(text, textFont, textBrush,
+          new PointF(x - textSize.Width / 2,
+            (float) (r.Bottom - r.Top) * 5 / 7 + textSize.Height / 2));
+
+        //clock face
+        for (var i = 1; i < 13; i++) {
+          text = i.ToString("##");
+          textSize = graphics.MeasureString(text, textFont);
+          graphics.DrawString(text, textFont, textBrush, new PointF(
+            (float) (x - textSize.Width / 2 +
+                     (x - aLeft) * 2.8 * Math.Sin(i * 30 * Math.PI / 180) / 3),
+            (float) (y - textSize.Height / 2 -
+                     (y - aTop) * 2.8 * Math.Cos(i * 30 * Math.PI / 180) / 3)));
+        }
+      }
+
+      for (var i = 1; i < 61; i++) {
+        if (i % 5 != 0) {
+          graphics.DrawLine(linesPen,
+            new PointF((float) (x + (x - aLeft - 10) * Math.Sin(i * 6 * Math.PI / 180)),
+              (float) (y - (y - aTop - 10) * Math.Cos(i * 6 * Math.PI / 180))),
+            new PointF((float) (x + (x - aLeft - 10) / 1.03 * Math.Sin(i * 6 * Math.PI / 180)),
+              (float) (y - (y - aTop - 10) / 1.03 * Math.Cos(i * 6 * Math.PI / 180))));
+        }
+        else {
+          graphics.DrawLine(linesPen,
+            new PointF((float) (x + (x - aLeft) / 1.15 * Math.Sin(i * 6 * Math.PI / 180)),
+              (float) (y - (y - aTop) / 1.15 * Math.Cos(i * 6 * Math.PI / 180))),
+            new PointF((float) (x + (x - aLeft) / 1.20 * Math.Sin(i * 6 * Math.PI / 180)),
+              (float) (y - (y - aTop) / 1.20 * Math.Cos(i * 6 * Math.PI / 180))));
+        }
+      }
+
+      //Arrows paint
+      linesPen.Width = previewMode ? 3 : 7;
+      graphics.DrawEllipse(linesPen, x - 3, y - 3, 6, 6);
+      //hour
+      graphics.DrawLine(linesPen, new PointF(x, y),
+        new PointF(
+          (float) (x + (x - aLeft) / 2.5 *
+            Math.Sin(((float) nowTime.Minute / 60 + nowTime.Hour) * 30 * Math.PI / 180)),
+          (float) (y - (y - aTop) / 2.5 *
+            Math.Cos(((float) nowTime.Minute / 60 + nowTime.Hour) * 30 * Math.PI / 180))));
+      //minute
+      linesPen.Width = previewMode ? 2 : 4;
+      graphics.DrawLine(linesPen, new PointF(x, y),
+        new PointF(
+          (float) (x + (x - aLeft) / 1.5 *
+            Math.Sin(((float) nowTime.Second / 60 + nowTime.Minute) * 6 * Math.PI / 180)),
+          (float) (y - (y - aTop) / 1.5 *
+            Math.Cos(((float) nowTime.Second / 60 + nowTime.Minute) * 6 * Math.PI / 180))));
+      //second
+      linesPen.Width = 1;
+      graphics.DrawLine(linesPen, new PointF(x, y),
+        new PointF((float) (x + (x - aLeft) / 1.1 * Math.Sin(nowTime.Second * 6 * Math.PI / 180)),
+          (float) (y - (y - aTop) / 1.1 * Math.Cos(nowTime.Second * 6 * Math.PI / 180))));
     }
   }
 }
