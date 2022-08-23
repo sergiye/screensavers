@@ -56,6 +56,7 @@ namespace MorphClocks {
     [XmlAttribute] public bool Move3D;
     [XmlAttribute] public bool DrawCircle;
     [XmlAttribute] public bool LockOnExit;
+    [XmlAttribute] public bool PrimaryDisplayOnly;
 
     #region Load/Save
 

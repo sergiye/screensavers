@@ -35,6 +35,7 @@ namespace MorphClocks {
       cbxMove3D.Checked = AppSettings.Instance.Move3D;
       cbxDrawCircle.Checked = AppSettings.Instance.DrawCircle;
       cbxLockOnExit.Checked = AppSettings.Instance.LockOnExit;
+      cbxPrimaryDisplay.Checked = AppSettings.Instance.PrimaryDisplayOnly;
     }
 
     private bool IsTransparent(Color color) {
@@ -50,6 +51,7 @@ namespace MorphClocks {
       AppSettings.Instance.Move3D = cbxMove3D.Checked;
       AppSettings.Instance.DrawCircle = cbxDrawCircle.Checked;
       AppSettings.Instance.LockOnExit = cbxLockOnExit.Checked;
+      AppSettings.Instance.PrimaryDisplayOnly = cbxPrimaryDisplay.Checked;
       AppSettings.Instance.Save();
       Close();
     }

@@ -28,7 +28,7 @@ namespace MorphClocks {
     }
 
     private static void ShowScreensaver() {
-      if (Debugger.IsAttached) {
+      if (Debugger.IsAttached || AppSettings.Instance.PrimaryDisplayOnly) {
         var screensaver = new MainForm(Screen.PrimaryScreen.Bounds);
         screensaver.Show();
       }
